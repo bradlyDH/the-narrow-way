@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "The Narrow Way",
+    "slug": "the-narrow-way",
+    "scheme": "narrowway",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.bradlydh.thenarrowway"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE-WITH-YOUR-EAS-ID"
+      }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
