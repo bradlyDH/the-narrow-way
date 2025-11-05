@@ -1,47 +1,37 @@
-// import React from 'react';
-// import { View, StyleSheet } from 'react-native';
-
-// export default function SunRays() {
-//   return (
-//     <View pointerEvents="none" style={styles.wrap}>
-//       <View style={styles.sunBlob} />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   wrap: { position: 'absolute', top: 0, left: 0, right: 0, height: 220 },
-//   sunBlob: {
-//     position: 'absolute',
-//     right: -90,
-//     top: -90,
-//     width: 260,
-//     height: 260,
-//     backgroundColor: 'rgba(245,238,158,0.08)',
-//     borderRadius: 999,
-//   },
-// });
-
+// src/components/SunRays.js
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Colors } from '../constants/colors';
 
-export default function SunRays() {
+// Using SunRays.js as the animated background component
+export default function SunRays({ source }) {
   return (
-    <View pointerEvents="none" style={styles.wrap}>
-      <View style={styles.sunBlob} />
+    <View style={styles.container} pointerEvents="none">
+      <Image
+        source={source || require('../../assets/backgrounds/sunrays.gif')}
+        style={styles.background}
+        contentFit="cover"
+        transition={500}
+      />
+      {/* Optional overlay for readability */}
+      <View style={styles.overlay} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', top: 0, left: 0, right: 0, height: 220 },
-  sunBlob: {
+  container: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  background: {
+    width: '100%',
+    height: '100%',
     position: 'absolute',
-    right: -90,
-    top: -90,
-    width: 260,
-    height: 260,
-    backgroundColor: 'rgba(245,238,158,0.08)', // <10% opacity
-    borderRadius: 999,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.background,
+    opacity: 0.05, // subtle tint to soften or brighten the GIF
   },
 });

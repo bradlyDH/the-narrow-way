@@ -8,12 +8,12 @@ import TileButton from '../components/TileButton'; // default
 
 export default function HomeScreen({ navigation }) {
   const tiles = [
-    { label: 'Prayer List 🙏', route: 'PrayerList' },
-    { label: 'Profile 👤', route: 'Profile' },
-    { label: 'Today’s Quest 🎯', route: 'Quest' },
-    { label: 'Progress 📈', route: 'Progress' },
-    { label: 'Make Friends 🌎', route: 'MakeFriends' },
-    { label: 'Friends List 📋', route: 'FriendsList' },
+    { label: 'Prayer List', emoji: '🙏', screen: 'PrayerList' },
+    { label: 'Profile', emoji: '👤', screen: 'Profile' },
+    { label: 'Today’s Quest', emoji: '🎯', screen: 'Quest' },
+    { label: 'Progress', emoji: '📈', screen: 'Progress' },
+    { label: 'Make Friends', emoji: '👥', screen: 'MakeFriends' },
+    { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
   ];
 
   const unreadEncouragements = false; // wire to real state later
@@ -47,7 +47,8 @@ export default function HomeScreen({ navigation }) {
               <View key={t.label} style={styles.gridItem}>
                 <TileButton
                   label={t.label}
-                  onPress={() => navigation.navigate(t.route)}
+                  emoji={t.emoji}
+                  onPress={() => navigation.navigate(t.screen)}
                 />
               </View>
             ))}
@@ -64,16 +65,20 @@ const styles = StyleSheet.create({
 
   body: { paddingHorizontal: 16, paddingTop: 6 },
   greeting: { fontSize: 32, fontWeight: '800', color: Colors.button },
-  sub: { color: Colors.text, marginBottom: 12, fontSize: 16 },
+  sub: {
+    color: Colors.text,
+    marginBottom: 12,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -8,
+    justifyContent: 'space-between',
   },
   gridItem: {
-    width: '50%',
-    paddingHorizontal: 8,
-    paddingBottom: 12,
+    width: '48%',
+    marginBottom: 14,
   },
 });
