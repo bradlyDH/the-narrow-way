@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 18,
     borderRadius: 18,
+    opacity: 0.85,
   },
   text: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

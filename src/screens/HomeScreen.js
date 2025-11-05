@@ -12,7 +12,7 @@ export default function HomeScreen({ navigation }) {
     { label: 'Profile', emoji: '👤', screen: 'Profile' },
     { label: 'Today’s Quest', emoji: '🎯', screen: 'Quest' },
     { label: 'Progress', emoji: '📈', screen: 'Progress' },
-    { label: 'Make Friends', emoji: '👥', screen: 'MakeFriends' },
+    { label: 'Make Friends', emoji: '🤝', screen: 'MakeFriends' },
     { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
   ];
 
@@ -27,9 +27,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.body}>
           <Text style={styles.greeting}>Good morning</Text>
-          <Text style={styles.sub}>
-            Let’s grow in obedience to Christ today!
-          </Text>
+          <Text style={styles.sub}>Growing in obedience to Christ!</Text>
 
           <VerseCard>Your Verse…</VerseCard>
 
@@ -64,11 +62,11 @@ const styles = StyleSheet.create({
   appTitle: { fontSize: 22, fontWeight: '800', color: '#000' },
 
   body: { paddingHorizontal: 16, paddingTop: 6 },
-  greeting: { fontSize: 32, fontWeight: '800', color: Colors.button },
+  greeting: { fontSize: 32, fontWeight: '800', color: '#edf2fb' },
   sub: {
     color: Colors.text,
     marginBottom: 12,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '600',
   },
 

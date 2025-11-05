@@ -1,7 +1,11 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const SIZE = 40;
 
 export default function BackArrow({ onPress }) {
   return (
@@ -9,10 +13,24 @@ export default function BackArrow({ onPress }) {
       accessibilityRole="button"
       accessibilityLabel="Back"
       onPress={onPress}
-      style={styles.touch}
       hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+      style={styles.touch}
+      activeOpacity={0.8}
     >
-      <Ionicons name="chevron-back" size={28} color={Colors.backArrow} />
+      <MaskedView
+        maskElement={
+          <View style={styles.iconBox}>
+            <Ionicons name="arrow-back-circle" size={36} color="#000" />
+          </View>
+        }
+      >
+        <LinearGradient
+          colors={['#8f86edff', '#0466c8']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradientBox, { borderRadius: SIZE / 2 }]}
+        />
+      </MaskedView>
     </TouchableOpacity>
   );
 }
@@ -22,6 +40,17 @@ const styles = StyleSheet.create({
   touch: {
     minWidth: 44,
     minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gradientBox: {
+    width: SIZE,
+    height: SIZE,
+    paddingBottom: 50,
+  },
+  iconBox: {
+    width: SIZE,
+    height: SIZE,
     justifyContent: 'center',
     alignItems: 'center',
   },

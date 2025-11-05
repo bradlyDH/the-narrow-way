@@ -28,7 +28,9 @@ export default function TileButton({ label, onPress, emoji, style }) {
             {emoji}
           </Text>
         ) : null}
-        <Text style={styles.text}>{label}</Text>
+        <Text style={styles.text} numberOfLines={2} ellipsizeMode="tail">
+          {label}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -47,6 +49,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
+    opacity: 0.85,
     // paddingHorizontal: 18,
     // paddingVertical: 16,
   },

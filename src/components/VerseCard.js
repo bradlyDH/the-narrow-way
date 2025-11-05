@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 18,
+    opacity: 0.85,
   },
   text: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
