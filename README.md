@@ -24,6 +24,12 @@ Front-end: React Native + Expo SDK 54
 
 Backend: Supabase (PostgreSQL, Auth, Functions, RLS)
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+11/5/25
+
+Made updates to the tiles to make them more square to increase application asthetics.
+
 Auth: Email, Google, and Apple Sign-in
 
 UI: Custom minimalist design inspired by Matthew 7:13–14 — “The narrow way that leads to life.”
