@@ -27,4 +27,5 @@ Backend: Supabase (PostgreSQL, Auth, Functions, RLS)
 Auth: Email, Google, and Apple Sign-in
 
 UI: Custom minimalist design inspired by Matthew 7:13–14 — “The narrow way that leads to life.”
->>>>>>> origin/main
+
+> > > > > > > origin/main

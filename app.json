@@ -2,15 +2,14 @@
   "expo": {
     "name": "The Narrow Way",
     "slug": "the-narrow-way",
+    "platforms": ["ios", "android"],
     "scheme": "narrowway",
     "version": "0.1.0",
     "orientation": "portrait",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -28,8 +27,6 @@
         "projectId": "REPLACE-WITH-YOUR-EAS-ID"
       }
     },
-    "plugins": [
-      "expo-asset"
-    ]
+    "plugins": ["expo-asset"]
   }
 }
