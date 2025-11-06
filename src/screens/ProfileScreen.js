@@ -13,6 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
+import FloatingLabelInput from '../components/FloatingLabelInput';
+import { fetchESV } from '../utils/bible';
+
 // import 'react-native-get-random-values'; // ensures UUID works on mobile
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -36,6 +39,9 @@ export default function ProfileScreen({ navigation }) {
   const [verseText, setVerseText] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [finding, setFinding] = useState(false);
+  const [findError, setFindError] = useState('');
+  const [lastLookup, setLastLookup] = useState({ ref: '', text: '' }); // tiny cache
 
   useEffect(() => {
     (async () => {
@@ -129,6 +135,33 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const onFindVerse = async () => {
+    const ref = (verseRef || '').trim();
+    if (!ref) {
+      setFindError('Enter a verse reference (e.g., John 3:16)');
+      return;
+    }
+
+    // Simple in-memory cache to avoid re-hitting the API for the same ref
+    if (lastLookup.ref === ref && lastLookup.text) {
+      setVerseText(lastLookup.text);
+      setFindError('');
+      return;
+    }
+
+    try {
+      setFinding(true);
+      setFindError('');
+      const text = await fetchESV(ref);
+      setVerseText(text);
+      setLastLookup({ ref, text });
+    } catch (e) {
+      setFindError(e?.message || 'Lookup failed.');
+    } finally {
+      setFinding(false);
+    }
+  };
+
   if (loading) {
     return (
       <Screen showBack onBack={() => navigation.goBack()}>
@@ -163,39 +196,71 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Display Name */}
         <View style={styles.fieldBlock}>
-          <Text style={styles.label}>Display Name</Text>
-          <TextInput
+          <FloatingLabelInput
+            label="Display Name"
             value={displayName}
             onChangeText={setDisplayName}
-            placeholder="e.g., John D."
-            placeholderTextColor="#9fb1c1"
-            style={styles.input}
             maxLength={60}
           />
         </View>
 
         {/* Favorite Verse */}
         <View style={styles.fieldBlock}>
-          <Text style={styles.label}>Favorite Verse (Reference)</Text>
-          <TextInput
+          <FloatingLabelInput
+            label="Favorite Verse (Reference)"
             value={verseRef}
             onChangeText={setVerseRef}
-            placeholder="e.g., John 3:16"
-            placeholderTextColor="#9fb1c1"
-            style={styles.input}
             maxLength={60}
           />
         </View>
 
+        {/* Find Verse row */}
+        <View
+          style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }}
+        >
+          <TouchableOpacity
+            onPress={onFindVerse}
+            disabled={finding || !verseRef.trim()}
+            activeOpacity={0.9}
+            style={[
+              styles.findBtn,
+              (finding || !verseRef.trim()) && { opacity: 0.6 },
+            ]}
+          >
+            {finding ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.findBtnText}>Find Verse</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setVerseRef('');
+              setVerseText('');
+              setFindError('');
+            }}
+            style={{
+              marginLeft: 12,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+            }}
+          >
+            <Text style={styles.clearBtn}>Clear</Text>
+          </TouchableOpacity>
+        </View>
+
+        {!!findError && (
+          <Text style={{ color: '#a30000', marginTop: 6 }}>{findError}</Text>
+        )}
+
         <View style={styles.fieldBlock}>
-          <Text style={styles.label}>Favorite Verse (Text)</Text>
-          <TextInput
+          <FloatingLabelInput
+            label="Favorite Verse (Text)"
             value={verseText}
             onChangeText={setVerseText}
-            placeholder="Enter verse text"
-            placeholderTextColor="#9fb1c1"
-            style={[styles.input, styles.multiline]}
             multiline
+            maxLength={500}
           />
         </View>
 
@@ -269,9 +334,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 16,
+    opacity: 0.85,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   saveText: { color: '#fff', fontWeight: '800' },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  findBtn: {
+    backgroundColor: Colors.button,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  findBtnText: { color: '#fff', fontWeight: '800', opacity: 0.95 },
+  clearBtn: {
+    backgroundColor: '#fff',
+    fontWeight: '800',
+    borderRadius: 12,
+    opacity: 0.7,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
 });
