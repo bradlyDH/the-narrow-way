@@ -18,6 +18,17 @@ import ResourcesScreen from './src/screens/ResourcesScreen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ensureSessionAndProfile } from './src/auth/bootstrap';
+import { supabase } from './src/supabase';
+
+// ✅ Run this immediately on app load
+(async () => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) {
+    await supabase.auth.signInAnonymously();
+  }
+})();
 
 const Stack = createNativeStackNavigator();
 const AppTheme = {
@@ -26,6 +37,42 @@ const AppTheme = {
 };
 
 export default function App() {
+  // const [ready, setReady] = useState(false);
+
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       await ensureSessionAndProfile();
+  //     } finally {
+  //       setReady(true);
+  //     }
+  //   })();
+  // }, []);
+
+  // if (!ready) {
+  //   return (
+  //     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+  //       <ActivityIndicator />
+  //     </View>
+  //   );
+  // }
+  // const [ready, setReady] = useState(false);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       await ensureSessionAndProfile();
+  //     } finally {
+  //       setReady(true);
+  //     }
+  //   })();
+  // }, []);
+  // if (!ready)
+  //   return (
+  //     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+  //       <ActivityIndicator />
+  //     </View>
+  //   );
+
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

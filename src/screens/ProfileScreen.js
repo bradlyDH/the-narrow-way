@@ -372,8 +372,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
-import 'react-native-get-random-values'; // ensures UUID works on mobile
-import { v4 as uuidv4 } from 'uuid';
+// import 'react-native-get-random-values'; // ensures UUID works on mobile
+// import { v4 as uuidv4 } from 'uuid';
 
 // Converts UUID → short, human-friendly base36 ID
 function shortCodeFromUid(uid) {
@@ -399,37 +399,43 @@ export default function ProfileScreen({ navigation }) {
   useEffect(() => {
     (async () => {
       try {
-        // 1️⃣ Check if user already has an ID
-        let existingId = await AsyncStorage.getItem('narrowway_user_id');
+        // Get the currently authenticated (anonymous) user
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
 
-        if (!existingId) {
-          // 2️⃣ If not, generate one and store
-          existingId = uuidv4();
-          await AsyncStorage.setItem('narrowway_user_id', existingId);
-
-          // 3️⃣ Insert new user into Supabase
-          await supabase.from('profiles').insert({
-            id: existingId,
-            display_name: '',
-            verse_ref: '',
-            verse_text: '',
-          });
+        if (authError || !user) {
+          console.warn(
+            'No active auth session. Ensure anonymous sign-in is running at app start.'
+          );
+          setLoading(false);
+          return;
         }
 
-        setUid(existingId);
-        setShortId(shortCodeFromUid(existingId));
+        const uid = user.id;
+        setUid(uid);
+        setShortId(shortCodeFromUid(uid));
 
-        // 4️⃣ Load saved data
+        // Try to fetch profile data for this user
         const { data, error } = await supabase
           .from('profiles')
           .select('display_name, verse_ref, verse_text')
-          .eq('id', existingId)
+          .eq('id', uid)
           .single();
 
         if (!error && data) {
           setDisplayName(data.display_name || '');
           setVerseRef(data.verse_ref || '');
           setVerseText(data.verse_text || '');
+        } else if (error && error.code === 'PGRST116') {
+          // No row found yet — create one
+          await supabase.from('profiles').insert({
+            id: uid,
+            display_name: '',
+            verse_ref: '',
+            verse_text: '',
+          });
         }
       } catch (e) {
         console.error('Profile load error:', e);
@@ -478,9 +484,9 @@ export default function ProfileScreen({ navigation }) {
     <Screen showBack onBack={() => navigation.goBack()}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Profile</Text>
-        <Text style={styles.subtitle}>
+        {/* <Text style={styles.subtitle}>
           Update your name and favorite Scripture.
-        </Text>
+        </Text> */}
 
         {/* Unique ID (read-only) */}
         <View style={styles.fieldBlock}>
@@ -557,14 +563,23 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 16, paddingBottom: 24 },
+  content: { paddingHorizontal: 16, paddingBottom: 24, paddingTop: 17 },
   title: {
     fontSize: 32,
     fontWeight: '800',
     color: Colors.button,
-    marginTop: 8,
+    marginBottom: 8,
   },
-  subtitle: { color: Colors.text, marginTop: 4, marginBottom: 12 },
+  subtitle: {
+    backgroundColor: '#e9eef3',
+    borderRadius: 16,
+    color: Colors.button,
+    marginTop: 4,
+    marginBottom: 12,
+    opacity: 0.7,
+    fontSize: 20,
+    fontWeight: '800',
+  },
   fieldBlock: { marginTop: 12 },
   label: { marginBottom: 8, fontSize: 16, fontWeight: '800', color: '#1b2140' },
   input: {
