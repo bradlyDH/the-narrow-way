@@ -14,6 +14,8 @@ export default function HomeScreen({ navigation }) {
     { label: 'Progress', emoji: '📈', screen: 'Progress' },
     { label: 'Make Friends', emoji: '🤝', screen: 'MakeFriends' },
     { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
+    { label: 'Resources', emoji: '🧰', screen: 'Resources' },
+    { label: 'Donations', emoji: '❤️', screen: 'Donations' },
   ];
 
   const unreadEncouragements = false; // wire to real state later
