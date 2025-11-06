@@ -15,6 +15,9 @@ import FriendsListScreen from './src/screens/FriendsListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import DonationsScreen from './src/screens/DonationsScreen';
 import ResourcesScreen from './src/screens/ResourcesScreen';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { ensureSessionAndProfile } from './src/auth/bootstrap';
 
 const Stack = createNativeStackNavigator();
 const AppTheme = {
@@ -23,6 +26,25 @@ const AppTheme = {
 };
 
 export default function App() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await ensureSessionAndProfile();
+      } finally {
+        setReady(true);
+      }
+    })();
+  }, []);
+
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
   return (
     <SafeAreaProvider>
       <NavigationContainer theme={AppTheme}>
