@@ -260,6 +260,7 @@ export default function PrayerListScreen({ navigation }) {
         {/* Form */}
         <View style={{ marginTop: 10 }}>
           <FloatingLabelInput
+            style={{ paddingBottom: 9 }}
             label="Request Title"
             value={title}
             onChangeText={setTitle}

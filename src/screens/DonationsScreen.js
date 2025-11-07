@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   subtitle: {
-    backgroundColor: 'white',
+    // backgroundColor: 'white',
     borderRadius: 16,
     padding: 8,
     color: '#080630ff',

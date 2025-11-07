@@ -1,37 +1,166 @@
-// src/components/SunRays.js
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Image } from 'expo-image';
-import { Colors } from '../constants/colors';
+// // // src/components/SunRays.js
+// // import React from 'react';
+// // import { StyleSheet, View } from 'react-native';
+// // import { Image } from 'expo-image';
+// // import { Colors } from '../constants/colors';
 
-// Using SunRays.js as the animated background component
-export default function SunRays({ source }) {
+// // // Using SunRays.js as the animated background component
+// // export default function SunRays({ source }) {
+// //   return (
+// //     <View style={styles.container} pointerEvents="none">
+// //       <Image
+// //         source={source || require('../../assets/backgrounds/sunrays.gif')}
+// //         style={styles.background}
+// //         contentFit="cover"
+// //         transition={500}
+// //       />
+// //       {/* Optional overlay for readability */}
+// //       <View style={styles.overlay} />
+// //     </View>
+// //   );
+// // }
+
+// // const styles = StyleSheet.create({
+// //   container: {
+// //     ...StyleSheet.absoluteFillObject,
+// //   },
+// //   background: {
+// //     width: '100%',
+// //     height: '100%',
+// //     position: 'absolute',
+// //   },
+// //   overlay: {
+// //     ...StyleSheet.absoluteFillObject,
+// //     backgroundColor: Colors.background,
+// //     opacity: 0.05, // subtle tint to soften or brighten the GIF
+// //   },
+// // });
+
+// // src/components/SunRays.js
+// import React from 'react';
+// import { StyleSheet, View } from 'react-native';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// export default function SunRays() {
+//   return (
+//     <View style={styles.container} pointerEvents="none">
+//       <LinearGradient
+//         colors={[
+//           '#E3F2FD',
+//           '#BBDEFB',
+//           '#90CAF9',
+//           '#64B5F6',
+//           '#42A5F5',
+//           '#2196F3',
+//           '#1E88E5',
+//           '#1976D2',
+//           '#1565C0',
+//           '#0D47A1',
+//         ]}
+//         start={{ x: 1, y: 0 }}
+//         end={{ x: 0, y: 1 }} // vertical gradient top → bottom
+//         style={styles.gradient}
+//       />
+
+//       {/* Optional overlay for future effects (can leave or remove) */}
+//       <View style={styles.overlay} />
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     ...StyleSheet.absoluteFillObject,
+//   },
+//   gradient: {
+//     ...StyleSheet.absoluteFillObject,
+//   },
+//   overlay: {
+//     ...StyleSheet.absoluteFillObject,
+//     opacity: 0.0, // keep at 0 unless you want a tint layer
+//   },
+// });
+
+// src/components/SunRays.js
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Animated, Easing } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const PALETTE = [
+  '#E3F2FD',
+  '#BBDEFB',
+  '#90CAF9',
+  '#64B5F6',
+  '#42A5F5',
+  '#2196F3',
+  '#1E88E5',
+  '#1976D2',
+  '#1565C0',
+  '#0D47A1',
+];
+
+// helper: rotate the palette for the second layer
+const rotate = (arr, n) => arr.slice(n).concat(arr.slice(0, n));
+
+export default function SunRays() {
+  const fade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = () => {
+      Animated.sequence([
+        Animated.timing(fade, {
+          toValue: 1,
+          duration: 6000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true, // animates opacity on the native thread
+        }),
+        Animated.timing(fade, {
+          toValue: 0,
+          duration: 6000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]).start(loop);
+    };
+    loop();
+  }, [fade]);
+
+  // Two gradients with slightly different directions + rotated colors
+  const colorsA = PALETTE;
+  const colorsB = rotate(PALETTE, 3);
+
   return (
     <View style={styles.container} pointerEvents="none">
-      <Image
-        source={source || require('../../assets/backgrounds/sunrays.gif')}
-        style={styles.background}
-        contentFit="cover"
-        transition={500}
+      {/* Base gradient */}
+      <LinearGradient
+        colors={colorsA}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }} // diagonal sweep
+        style={styles.gradient}
       />
-      {/* Optional overlay for readability */}
+
+      {/* Animated overlay gradient (cross-fades in/out) */}
+      <Animated.View style={[styles.gradient, { opacity: fade }]}>
+        <LinearGradient
+          colors={colorsB}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 1 }} // opposite diagonal for motion contrast
+          style={styles.gradient}
+        />
+      </Animated.View>
+
+      {/* Optional super-subtle veil to keep text readable; tweak or remove */}
       <View style={styles.overlay} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  background: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
+  container: { ...StyleSheet.absoluteFillObject },
+  gradient: { ...StyleSheet.absoluteFillObject },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.background,
-    opacity: 0.05, // subtle tint to soften or brighten the GIF
+    backgroundColor: '#000',
+    opacity: 0.03,
   },
 });
