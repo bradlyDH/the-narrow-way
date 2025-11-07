@@ -1,56 +1,3 @@
-// import React from 'react';
-// import { View, Text, StyleSheet, ScrollView } from 'react-native';
-// import { Colors } from '../constants/colors';
-// import SunRays from '../components/SunRays';
-// import BackArrow from '../components/BackArrow';
-
-// export default function AnsweredPrayersScreen({ navigation }) {
-//   return (
-//     <View style={styles.container}>
-//       <SunRays />
-//       <BackArrow onPress={() => navigation.goBack()} />
-//       <ScrollView contentContainerStyle={styles.content}>
-//         <Text style={styles.title}>Answered Prayers</Text>
-//         <Text style={styles.subtitle}>Psalm 10:17 — He will hear.</Text>
-//         <Text style={{ color: Colors.text }}>List of answered prayers…</Text>
-//       </ScrollView>
-//     </View>
-//   );
-// }
-// import React from 'react';
-// import { ScrollView, Text, StyleSheet } from 'react-native';
-// import Screen from '../components/Screen';
-// import { Colors } from '../constants/colors';
-
-// export default function AnsweredPrayersScreen({ navigation }) {
-//   return (
-//     // 👇 Automatically includes the top banner, rays, and back arrow in upper-right
-//     <Screen showBack onBack={() => navigation.goBack()}>
-//       <ScrollView contentContainerStyle={styles.content}>
-//         <Text style={styles.title}>Answered Prayers</Text>
-//         <Text style={styles.subtitle}>Psalm 10:17 — He will hear.</Text>
-//         <Text style={{ color: Colors.text }}>List of answered prayers…</Text>
-//       </ScrollView>
-//     </Screen>
-//   );
-// }
-// const styles = StyleSheet.create({
-//   content: {
-//     paddingHorizontal: 16,
-//     paddingVertical: 20,
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: '800',
-//     color: Colors.button,
-//   },
-//   subtitle: {
-//     fontSize: 16,
-//     color: Colors.text,
-//     marginBottom: 12,
-//   },
-// });
-
 // src/screens/AnsweredPrayersScreen.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -120,17 +67,24 @@ export default function AnsweredPrayersScreen({ navigation }) {
   }, [load]);
 
   const restoreToActive = async (req) => {
+    // Optimistically remove from Answered list
     const prev = rows;
-    setRows(prev.filter((r) => r.id !== req.id)); // optimistic
+    setRows(prev.filter((r) => r.id !== req.id));
+
     try {
       const { error } = await supabase
         .from('prayer_requests')
         .update({ answered: false, answered_at: null })
         .eq('id', req.id)
         .eq('user_id', userIdRef.current);
+
       if (error) throw error;
+
+      // Bounce back to the Active list and nudge it to refetch
+      navigation.navigate('PrayerList', { refreshAt: Date.now() });
     } catch (e) {
-      setRows(prev); // rollback
+      // Roll back optimistic UI on error
+      setRows(prev);
       Alert.alert('Error', e?.message || 'Could not restore request.');
     }
   };
@@ -279,7 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 10,
   },
-  restoreBtn: { backgroundColor: '#5a67d8' },
-  deleteBtn: { backgroundColor: '#b00020' },
+  restoreBtn: { backgroundColor: '#5a67d8', marginBottom: 8 },
+  deleteBtn: { backgroundColor: '#b00020', marginBottom: 8 },
   swipeText: { color: '#fff', fontWeight: '800', marginTop: 6 },
 });

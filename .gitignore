@@ -5,3 +5,5 @@ build
 *.log
 .env
 src/config/index.js
+ios/
+android/
