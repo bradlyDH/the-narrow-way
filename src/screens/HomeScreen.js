@@ -1,13 +1,13 @@
 // src/screens/HomeScreen.js
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 
-import Screen from '../components/Screen'; // default
-import VerseCard from '../components/VerseCard'; // default
-import PulseTile from '../components/PulseTile'; // default
-import TileButton from '../components/TileButton'; // default
-import { Colors } from '../constants/colors'; // named
+import Screen from '../components/Screen';
+import VerseCard from '../components/VerseCard';
+import PulseTile from '../components/PulseTile';
+import TileButton from '../components/TileButton';
+import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
 
 function getGreeting() {
@@ -20,16 +20,23 @@ function getGreeting() {
 export default function HomeScreen({ navigation }) {
   const route = useRoute();
 
-  // Keep current value; no loading flag to avoid flicker
+  // existing state
   const [verse, setVerse] = useState({ ref: '', text: '' });
   const [displayName, setDisplayName] = useState('');
+
+  // inbox state
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // track current user id for realtime
+  const [userId, setUserId] = useState(null);
+  const channelRef = useRef(null);
 
   const loadVerse = useCallback(async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return; // keep whatever we already show
+      if (!user) return;
 
       const { data, error } = await supabase
         .from('profiles')
@@ -41,14 +48,10 @@ export default function HomeScreen({ navigation }) {
 
       const ref = (data?.verse_ref || '').trim();
       const text = (data?.verse_text || '').trim();
-
-      // Only update if different to prevent visual bounce
       setVerse((prev) =>
         prev.ref !== ref || prev.text !== text ? { ref, text } : prev
       );
-    } catch {
-      // swallow; keep previous value
-    }
+    } catch {}
   }, []);
 
   const loadProfile = useCallback(async () => {
@@ -56,7 +59,6 @@ export default function HomeScreen({ navigation }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       if (!user) {
         setDisplayName('');
         return;
@@ -69,19 +71,41 @@ export default function HomeScreen({ navigation }) {
         .single();
 
       if (error) throw error;
-
       setDisplayName((data?.display_name || '').trim());
     } catch {
       setDisplayName('');
     }
   }, []);
 
-  // On focus:
-  // 1) If Profile passed fresh values, apply them immediately (optimistic)
-  // 2) Then revalidate quietly from Supabase (both verse + name)
+  // unread count (also captures user id for realtime)
+  const loadUnreadCount = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setUserId(null);
+        setUnreadCount(0);
+        return;
+      }
+      setUserId(user.id);
+
+      const { count } = await supabase
+        .from('encouragements')
+        .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
+        .is('read_at', null);
+
+      setUnreadCount(count || 0);
+    } catch {
+      setUnreadCount(0);
+    }
+  }, []);
+
+  // on focus re-validate everything
   useFocusEffect(
     useCallback(() => {
-      // Accept verse updates from Profile (both can be undefined; guard safely)
+      // accept optimistic verse updates from Profile
       const incomingRef =
         typeof route.params?.verseRef === 'string'
           ? route.params.verseRef.trim()
@@ -98,11 +122,10 @@ export default function HomeScreen({ navigation }) {
         }));
       }
 
-      // Revalidate both resources
       loadVerse();
       loadProfile();
+      loadUnreadCount();
 
-      // If a refreshAt flag was passed, we've now reloaded; clear params
       if (route.params) {
         navigation.setParams({
           verseRef: undefined,
@@ -116,26 +139,79 @@ export default function HomeScreen({ navigation }) {
       route.params?.refreshAt,
       loadVerse,
       loadProfile,
+      loadUnreadCount,
       navigation,
     ])
   );
 
+  // ---- Realtime: new encouragements → update unread instantly ----
+  useEffect(() => {
+    // tear down any prior channel when user changes
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`encouragements-inbox-${userId}`)
+      // New message for me
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'encouragements',
+          filter: `recipient_id=eq.${userId}`,
+        },
+        () => {
+          // increment optimistically
+          setUnreadCount((n) => (Number.isFinite(n) ? n + 1 : 1));
+        }
+      )
+      // If someone toggles read_at from null → not null elsewhere,
+      // you could decrement here. Home only needs to light up on INSERTs.
+      .subscribe((status) => {
+        // no-op; can log status if you want
+      });
+
+    channelRef.current = channel;
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [userId]);
+
   const tiles = [
-    { label: 'Prayers List', emoji: '🙏', screen: 'PrayerList' },
+    // { label: 'Prayers List', emoji: '🙏', screen: 'PrayerList' },
     { label: 'Profile', emoji: '👤', screen: 'Profile' },
-    { label: 'Today’s Quest', emoji: '🎯', screen: 'Quest' },
-    { label: 'Progress', emoji: '📈', screen: 'Progress' },
+    // { label: 'Today’s Quest', emoji: '🎯', screen: 'Quest' },
+    // { label: 'Progress', emoji: '📈', screen: 'Progress' },
     { label: 'Make Friends', emoji: '🤝', screen: 'MakeFriends' },
-    { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
+    // { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
     { label: 'Resources', emoji: '🧰', screen: 'Resources' },
     { label: 'Donations', emoji: '❤️', screen: 'Donations' },
   ];
 
-  const unreadEncouragements = false; // wire real state later
+  const pulsing = unreadCount > 0;
+
+  // What happens when the user taps the Enc Messages tile
+  const onPressEncouragements = () => {
+    if (unreadCount > 0) {
+      // Optimistically stop the animation & clear badge
+      setUnreadCount(0);
+      // Go to inbox; screen will mark as read server-side
+      navigation.navigate('ReceivedEncouragements', { markRead: true });
+    } else {
+      navigation.navigate('Encouragement');
+    }
+  };
 
   return (
     <ScrollView>
-      <Screen>
+      <Screen showBack={false}>
         <View style={styles.header}>
           <Text style={styles.appTitle}>The Narrow Way</Text>
         </View>
@@ -153,11 +229,13 @@ export default function HomeScreen({ navigation }) {
               : 'Set your favorite verse in profile.'}
           </VerseCard>
 
-          <View style={{ height: 12 }} />
+          <View style={{ height: 10 }} />
+
           <PulseTile
             label="Encouraging Messages"
-            pulsing={unreadEncouragements}
-            onPress={() => navigation.navigate('Encouragement')}
+            pulsing={pulsing}
+            count={unreadCount}
+            onPress={onPressEncouragements}
           />
 
           <View style={{ height: 18 }} />
@@ -200,6 +278,5 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     paddingBottom: 12,
-    // paddingHorizontal: 8,
   },
 });

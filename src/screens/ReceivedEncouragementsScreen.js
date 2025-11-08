@@ -1,40 +1,4 @@
-// import React from 'react';
-// import { ScrollView, Text, StyleSheet } from 'react-native';
-// import Screen from '../components/Screen';
-// import { Colors } from '../constants/colors';
-
-// export default function ReceivedEncouragementsScreen({ navigation }) {
-//   return (
-//     // 👇 Automatically includes banner + upper-right back arrow
-//     <Screen showBack onBack={() => navigation.goBack()}>
-//       <ScrollView contentContainerStyle={styles.content}>
-//         <Text style={styles.title}>Received Encouragements</Text>
-//         <Text style={styles.subtitle}>
-//           These will be permanently deleted after 30 days.
-//         </Text>
-//         <Text style={{ color: Colors.text }}>Inbox list here…</Text>
-//       </ScrollView>
-//     </Screen>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   content: {
-//     paddingHorizontal: 16,
-//     paddingVertical: 20,
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: '800',
-//     color: Colors.button,
-//   },
-//   subtitle: {
-//     fontSize: 16,
-//     color: Colors.text,
-//     marginBottom: 12,
-//   },
-// });
-
+// src/screens/ReceivedEncouragementsScreen.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -45,15 +9,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
 import Screen from '../components/Screen';
 import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
 
 const PAGE_SIZE = 20;
 
-export default function ReceivedEncouragementsScreen({ navigation }) {
+export default function ReceivedEncouragementsScreen({ navigation, route }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,7 +41,6 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
   };
 
   const loadPage = useCallback(async (pageIndex) => {
-    // pageIndex 0 = first page
     const from = pageIndex * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
@@ -95,9 +56,12 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
 
     const { data, error, count } = await supabase
       .from('encouragements')
-      .select('id, message_text, created_at, from_display, sender_id', {
-        count: 'estimated',
-      })
+      .select(
+        'id, message_text, created_at, from_display, sender_id, read_at',
+        {
+          count: 'estimated',
+        }
+      )
       .eq('recipient_id', user.id)
       .order('created_at', { ascending: false })
       .range(from, to);
@@ -110,7 +74,6 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
       setRows((prev) => [...prev, ...(data || [])]);
     }
 
-    // naive "has more" check using estimated count, if present
     if (typeof count === 'number') {
       setHasMore(to + 1 < count);
     } else {
@@ -118,15 +81,30 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
     }
   }, []);
 
+  // mark all current-user unread as read
+  const markAllRead = useCallback(async () => {
+    const uid = userIdRef.current;
+    if (!uid) return;
+    await supabase
+      .from('encouragements')
+      .update({ read_at: new Date().toISOString() })
+      .eq('recipient_id', uid)
+      .is('read_at', null);
+  }, []);
+
   const initialLoad = useCallback(async () => {
     setLoading(true);
     try {
       await loadPage(0);
       setPage(0);
+      // If called with markRead flag (from tile tap when unread>0), mark read now
+      if (route?.params?.markRead) {
+        await markAllRead();
+      }
     } finally {
       setLoading(false);
     }
-  }, [loadPage]);
+  }, [loadPage, markAllRead, route?.params?.markRead]);
 
   useEffect(() => {
     initialLoad();
@@ -137,10 +115,11 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
     try {
       await loadPage(0);
       setPage(0);
+      await markAllRead();
     } finally {
       setRefreshing(false);
     }
-  }, [loadPage]);
+  }, [loadPage, markAllRead]);
 
   const loadMore = useCallback(async () => {
     if (loading || refreshing || !hasMore) return;
@@ -148,9 +127,7 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
     try {
       await loadPage(next);
       setPage(next);
-    } catch {
-      // ignore; keep current page
-    }
+    } catch {}
   }, [page, hasMore, loading, refreshing, loadPage]);
 
   return (
@@ -186,21 +163,6 @@ export default function ReceivedEncouragementsScreen({ navigation }) {
                     {fmtRel(r.created_at)}
                   </Text>
                 </View>
-                {/* Copy button (optional nicety) */}
-                <TouchableOpacity
-                  onPress={() => {
-                    // Lazy import to avoid adding a hard dep at top
-                    import('react-native').then(({ Clipboard }) => {
-                      // New RN uses expo-clipboard typically; if you add it later,
-                      // replace this with Clipboard from 'expo-clipboard'
-                    });
-                  }}
-                  activeOpacity={0.8}
-                  style={styles.copyBtn}
-                  disabled
-                >
-                  <Ionicons name="copy-outline" size={18} color="#fff" />
-                </TouchableOpacity>
               </View>
             ))}
 
@@ -249,14 +211,6 @@ const styles = StyleSheet.create({
   },
   msg: { color: '#fff', fontSize: 16, fontStyle: 'italic', marginBottom: 6 },
   meta: { color: '#cfe1ee', fontSize: 12 },
-
-  copyBtn: {
-    backgroundColor: Colors.button,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    opacity: 0.6, // placeholder (disabled)
-  },
 
   moreBtn: {
     borderRadius: 14,
