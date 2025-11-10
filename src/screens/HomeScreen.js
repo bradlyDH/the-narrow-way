@@ -1,5 +1,5 @@
 // src/screens/HomeScreen.js
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 
@@ -26,10 +26,6 @@ export default function HomeScreen({ navigation }) {
 
   // inbox state
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // track current user id for realtime
-  const [userId, setUserId] = useState(null);
-  const channelRef = useRef(null);
 
   const loadVerse = useCallback(async () => {
     try {
@@ -77,19 +73,16 @@ export default function HomeScreen({ navigation }) {
     }
   }, []);
 
-  // unread count (also captures user id for realtime)
+  // unread count
   const loadUnreadCount = useCallback(async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        setUserId(null);
         setUnreadCount(0);
         return;
       }
-      setUserId(user.id);
-
       const { count } = await supabase
         .from('encouragements')
         .select('id', { count: 'exact', head: true })
@@ -105,7 +98,6 @@ export default function HomeScreen({ navigation }) {
   // on focus re-validate everything
   useFocusEffect(
     useCallback(() => {
-      // accept optimistic verse updates from Profile
       const incomingRef =
         typeof route.params?.verseRef === 'string'
           ? route.params.verseRef.trim()
@@ -144,77 +136,39 @@ export default function HomeScreen({ navigation }) {
     ])
   );
 
-  // ---- Realtime: new encouragements → update unread instantly ----
-  useEffect(() => {
-    // tear down any prior channel when user changes
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`encouragements-inbox-${userId}`)
-      // New message for me
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'encouragements',
-          filter: `recipient_id=eq.${userId}`,
-        },
-        () => {
-          // increment optimistically
-          setUnreadCount((n) => (Number.isFinite(n) ? n + 1 : 1));
-        }
-      )
-      // If someone toggles read_at from null → not null elsewhere,
-      // you could decrement here. Home only needs to light up on INSERTs.
-      .subscribe((status) => {
-        // no-op; can log status if you want
-      });
-
-    channelRef.current = channel;
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [userId]);
-
   const tiles = [
     // { label: 'Prayers List', emoji: '🙏', screen: 'PrayerList' },
     { label: 'Profile', emoji: '👤', screen: 'Profile' },
     // { label: 'Today’s Quest', emoji: '🎯', screen: 'Quest' },
     // { label: 'Progress', emoji: '📈', screen: 'Progress' },
     { label: 'Make Friends', emoji: '🤝', screen: 'MakeFriends' },
-    // { label: 'Friends List', emoji: '📋', screen: 'FriendsList' },
+    // { label: 'Friends List', emoji: '📋', screen: 'Friends' }, // tab name
     { label: 'Resources', emoji: '🧰', screen: 'Resources' },
     { label: 'Donations', emoji: '❤️', screen: 'Donations' },
   ];
 
   const pulsing = unreadCount > 0;
 
-  // What happens when the user taps the Enc Messages tile
+  // Tap behavior: go to inbox when there's unread, else composer.
   const onPressEncouragements = () => {
     if (unreadCount > 0) {
-      // Optimistically stop the animation & clear badge
-      setUnreadCount(0);
-      // Go to inbox; screen will mark as read server-side
-      navigation.navigate('ReceivedEncouragements', { markRead: true });
+      setUnreadCount(0); // optimistic clear
+      navigation.navigate('ReceivedEncouragements'); // inside HomeStack
     } else {
-      navigation.navigate('Encouragement');
+      navigation.navigate('Encouragement'); // inside HomeStack
     }
   };
 
   return (
-    <ScrollView>
-      <Screen showBack={false}>
-        <View style={styles.header}>
+    <Screen>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* <View style={styles.header}>
           <Text style={styles.appTitle}>The Narrow Way</Text>
-        </View>
+        </View> */}
 
         <View style={styles.body}>
           <Text style={styles.greeting}>
@@ -223,6 +177,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
           <Text style={styles.sub}>Growing in obedience to Christ!</Text>
 
+          {/* Verse */}
           <VerseCard>
             {verse.text
               ? `${verse.ref ? verse.ref + ' : ' : ''}"${verse.text}"`
@@ -252,8 +207,8 @@ export default function HomeScreen({ navigation }) {
             ))}
           </View>
         </View>
-      </Screen>
-    </ScrollView>
+      </ScrollView>
+    </Screen>
   );
 }
 
@@ -278,5 +233,11 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     paddingBottom: 12,
+  },
+  scrollContent: {
+    flexGrow: 1, // lets Screen's background fill under short pages
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 24,
   },
 });

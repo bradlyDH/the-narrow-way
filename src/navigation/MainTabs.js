@@ -332,8 +332,12 @@ export default function MainTabs() {
           fontWeight: '700',
           fontSize: 11,
           textAlign: 'center',
+          paddingBottom: 8,
         },
-        tabBarItemStyle: { alignItems: 'center', justifyContent: 'center' },
+        tabBarItemStyle: {
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
         tabBarIcon: ({ color, size }) => {
           const map = {
             Home: 'home-outline',

@@ -19,7 +19,7 @@ const PALETTE = [
 // helper: rotate the palette for the second layer
 const rotate = (arr, n) => arr.slice(n).concat(arr.slice(0, n));
 
-export default function SunRays() {
+export default function SunRays({ style }) {
   const fade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function SunRays() {
           toValue: 1,
           duration: 6000,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true, // animates opacity on the native thread
+          useNativeDriver: true,
         }),
         Animated.timing(fade, {
           toValue: 0,
@@ -42,38 +42,43 @@ export default function SunRays() {
     loop();
   }, [fade]);
 
-  // Two gradients with slightly different directions + rotated colors
   const colorsA = PALETTE;
   const colorsB = rotate(PALETTE, 3);
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    // Absolutely fill by default; pointerEvents so it never blocks touches
+    <View
+      style={[StyleSheet.absoluteFill, styles.container, style]}
+      pointerEvents="none"
+    >
       {/* Base gradient */}
       <LinearGradient
         colors={colorsA}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }} // diagonal sweep
+        end={{ x: 1, y: 1 }}
         style={styles.gradient}
       />
 
-      {/* Animated overlay gradient (cross-fades in/out) */}
+      {/* Animated overlay gradient (cross-fade) */}
       <Animated.View style={[styles.gradient, { opacity: fade }]}>
         <LinearGradient
           colors={colorsB}
           start={{ x: 1, y: 0 }}
-          end={{ x: 0, y: 1 }} // opposite diagonal for motion contrast
+          end={{ x: 0, y: 1 }}
           style={styles.gradient}
         />
       </Animated.View>
 
-      {/* Optional super-subtle veil to keep text readable; tweak or remove */}
+      {/* Subtle veil to keep text readable */}
       <View style={styles.overlay} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { ...StyleSheet.absoluteFillObject },
+  container: {
+    /* kept empty intentionally; absolute fill applied above */
+  },
   gradient: { ...StyleSheet.absoluteFillObject },
   overlay: {
     ...StyleSheet.absoluteFillObject,

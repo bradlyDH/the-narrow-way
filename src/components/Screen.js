@@ -17,7 +17,7 @@ export default function Screen({ children, showBack, onBack }) {
 
   const canGoBack = navigation?.canGoBack?.() ?? false;
   const shouldShowBack = typeof showBack === 'boolean' ? showBack : canGoBack;
-  const handleBack = onBack || (() => navigation.goBack());
+  // const handleBack = onBack || (() => navigation.goBack());
 
   // Make Android status bar float over content for consistent math
   // (iOS already handles this with safe areas)
@@ -33,26 +33,14 @@ export default function Screen({ children, showBack, onBack }) {
   const headerHeight = headerPaddingTop + BASE_HEADER_HEIGHT;
 
   return (
-    <SafeAreaView
-      style={styles.safe}
-      edges={['left', 'right']} // we’ll handle top with our custom header math
-    >
+    <SafeAreaView style={styles.safe} edges={['left', 'right']}>
       <View style={styles.container}>
         <SunRays />
 
-        {/* Custom header that accounts for safe area */}
-        <View
-          style={[
-            styles.header,
-            { paddingTop: headerPaddingTop, height: headerHeight },
-          ]}
-        >
-          {shouldShowBack ? <BackArrow onPress={handleBack} /> : null}
-        </View>
-
-        {/* Content area below header */}
         <View style={styles.content}>{children}</View>
       </View>
+
+      {/* </View> */}
     </SafeAreaView>
   );
 }
