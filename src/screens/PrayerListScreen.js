@@ -297,7 +297,9 @@ export default function PrayerListScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('AnsweredPrayers')}
+            onPress={() =>
+              navigation.navigate('Home', { screen: 'AnsweredPrayers' })
+            }
             activeOpacity={0.9}
             style={styles.secondaryBtn}
           >

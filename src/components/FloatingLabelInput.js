@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { View, TextInput, Animated, StyleSheet } from 'react-native';
 
 export default function FloatingLabelInput({
@@ -6,12 +6,38 @@ export default function FloatingLabelInput({
   value,
   onChangeText,
   multiline = false,
+  autoGrow = true, // NEW: auto expand to fit content
+  minLines = 3, // NEW: minimum lines when multiline
+  maxLines,
   inputStyle,
   containerStyle,
   ...rest
 }) {
   const focused = useRef(false);
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  const baseLineHeight = 20; // keep in sync with styles.multiline.lineHeight
+  const verticalPadding = 4; // from styles.multiline.paddingTop (simplified)
+  const lineHeight =
+    (inputStyle?.lineHeight ?? styles.multiline.lineHeight) || baseLineHeight;
+
+  // Compute min/max heights from line counts
+  const minHeight = useMemo(
+    () =>
+      multiline
+        ? Math.max(110, minLines * lineHeight + verticalPadding * 2)
+        : 48,
+    [multiline, minLines, lineHeight]
+  );
+  const maxHeight = useMemo(
+    () =>
+      multiline && maxLines
+        ? maxLines * lineHeight + verticalPadding * 2
+        : undefined,
+    [multiline, maxLines, lineHeight]
+  );
+
+  const [contentHeight, setContentHeight] = useState(minHeight);
 
   useEffect(() => {
     Animated.timing(anim, {
@@ -33,6 +59,17 @@ export default function FloatingLabelInput({
     inputRange: [0, 1],
     outputRange: [0.6, 1],
   });
+
+  // Height style if autoGrow is enabled
+  const dynamicHeightStyle =
+    multiline && autoGrow
+      ? {
+          height: Math.max(
+            minHeight,
+            Math.min(maxHeight ?? Number.MAX_SAFE_INTEGER, contentHeight)
+          ),
+        }
+      : {};
 
   return (
     <View style={[styles.container, containerStyle]}>

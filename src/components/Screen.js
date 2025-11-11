@@ -7,7 +7,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import SunRays from './SunRays';
-import BackArrow from './BackArrow';
 
 const BASE_HEADER_HEIGHT = 56; // visual header height beneath the OS area
 

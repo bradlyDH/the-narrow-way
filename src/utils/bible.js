@@ -1,3 +1,4 @@
+// ./src/utils/bible.js
 import 'react-native-url-polyfill/auto';
 import { CONFIG } from '../config';
 
