@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRoute } from '@react-navigation/native'; // ✅ ADDED
+import {
+  useFocusEffect,
+  useRoute,
+  useScrollToTop,
+} from '@react-navigation/native'; // ✅ ADDED
 
 import Screen from '../components/Screen';
 import FloatingLabelInput from '../components/FloatingLabelInput';
@@ -28,6 +32,8 @@ export default function PrayerListScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
 
   const userIdRef = useRef(null);
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
 
   // --- helpers (UPDATED)
   const todayLocalDate = () => {
@@ -247,6 +253,7 @@ export default function PrayerListScreen({ navigation }) {
   return (
     <Screen showBack onBack={() => navigation.goBack()}>
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
@@ -297,9 +304,7 @@ export default function PrayerListScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('Home', { screen: 'AnsweredPrayers' })
-            }
+            onPress={() => navigation.navigate('AnsweredPrayers')}
             activeOpacity={0.9}
             style={styles.secondaryBtn}
           >

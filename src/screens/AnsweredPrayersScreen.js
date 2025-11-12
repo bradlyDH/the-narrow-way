@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -67,7 +68,6 @@ export default function AnsweredPrayersScreen({ navigation }) {
   }, [load]);
 
   const restoreToActive = async (req) => {
-    // Optimistically remove from Answered list
     const prev = rows;
     setRows(prev.filter((r) => r.id !== req.id));
 
@@ -80,10 +80,9 @@ export default function AnsweredPrayersScreen({ navigation }) {
 
       if (error) throw error;
 
-      // Bounce back to the Active list and nudge it to refetch
-      navigation.navigate('PrayerList', { refreshAt: Date.now() });
+      // ✅ Simply dismiss; PrayerListScreen's useFocusEffect will refetch
+      navigation.pop(); // or navigation.goBack()
     } catch (e) {
-      // Roll back optimistic UI on error
       setRows(prev);
       Alert.alert('Error', e?.message || 'Could not restore request.');
     }
