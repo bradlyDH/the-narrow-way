@@ -329,28 +329,39 @@ export default function MainTabs() {
         options={{ tabBarLabel: 'Home' }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
-            const state = navigation.getState();
-            const homeRoute = state.routes.find((r) => r.name === 'Home');
+            const rootState = navigation.getState();
+            const homeRoute = rootState.routes.find((r) => r.name === 'Home');
             const isFocused = navigation.isFocused?.() ?? false;
-            const nestedKey = homeRoute?.state?.key;
+            const nestedState = homeRoute?.state; // state of HomeStack
+            const nestedKey = nestedState?.key;
+            const nestedIndex =
+              typeof nestedState?.index === 'number' ? nestedState.index : 0;
 
-            if (isFocused && nestedKey) {
+            // If switching *from another tab* to Home, reset the Home stack to its root
+            if (!isFocused) {
+              e.preventDefault();
+              if (nestedKey) {
+                // pop everything in HomeStack so we land on HomeMain
+                navigation.dispatch({
+                  ...StackActions.popToTop(),
+                  target: nestedKey,
+                });
+              }
+              // now focus/select the Home tab
+              navigation.navigate('Home');
+              return;
+            }
+
+            // If Home tab is already focused and the nested stack has items above root,
+            // intercept and pop to the top (no extra pushes, no duplicate slide).
+            if (isFocused && nestedKey && nestedIndex > 0) {
               e.preventDefault();
               navigation.dispatch({
                 ...StackActions.popToTop(),
                 target: nestedKey,
               });
-              return;
             }
-
-            e.preventDefault();
-            navigation.dispatch(
-              CommonActions.navigate({
-                name: 'Home',
-                params: { screen: 'HomeMain' },
-                merge: true,
-              })
-            );
+            // else: don't preventDefault — let the tab focus normally
           },
         })}
       />

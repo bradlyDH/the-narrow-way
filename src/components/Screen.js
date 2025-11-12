@@ -112,7 +112,7 @@ export default function Screen({
 
   const body = (
     <View style={styles.container}>
-      <SunRays />
+      <SunRays pointerEvents="none" />
       <View style={styles.content}>{children}</View>
     </View>
   );

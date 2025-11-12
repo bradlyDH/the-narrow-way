@@ -623,7 +623,7 @@
 
 // src/screens/HomeScreen.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 import Screen from '../components/Screen';
@@ -848,11 +848,14 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <Screen>
+    <Screen dismissOnTap={false}>
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'on-drag' : 'none'}
+        nestedScrollEnabled
       >
         <View style={styles.body}>
           <Text style={styles.greeting}>

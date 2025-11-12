@@ -1001,7 +1001,7 @@ export default function MakeFriendsScreen({ navigation }) {
   const onSearch = async () => {
     const input = (code || '')
       .toUpperCase()
-      .replace(/[^A-Z0-9]/g, '')
+      .replace(/[^A-Z0-9_-]/g, '')
       .trim();
 
     if (!input) {
@@ -1033,14 +1033,14 @@ export default function MakeFriendsScreen({ navigation }) {
         .from('profiles')
         .select('id, display_name, short_id')
         .eq('short_id', input)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          setNote('No user found with that User ID.');
-        } else {
-          setNote(error.message);
-        }
+        setNote(error.message || 'Search failed.');
+        return;
+      }
+      if (!data) {
+        setNot('No user found with that user ID.');
         return;
       }
 
@@ -1178,7 +1178,9 @@ export default function MakeFriendsScreen({ navigation }) {
             />
             <TextInput
               value={code}
-              onChangeText={(t) => setCode(t)}
+              onChangeText={(t) =>
+                setCode(t.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))
+              }
               autoCapitalize="characters"
               autoCorrect={false}
               placeholder="Search for User ID"
