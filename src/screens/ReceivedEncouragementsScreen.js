@@ -1,5 +1,6 @@
 // src/screens/ReceivedEncouragementsScreen.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -100,6 +101,15 @@ export default function ReceivedEncouragementsScreen({ navigation, route }) {
       // If called with markRead flag (from tile tap when unread>0), mark read now
       if (route?.params?.markRead) {
         await markAllRead();
+        // reflect locally so UI matches DB immediately
+        setRows((prev) =>
+          prev.map((r) => ({
+            ...r,
+            read_at: r.read_at ?? new Date().toISOString(),
+          }))
+        );
+        // clear the param so it doesn't trigger again on re-render
+        navigation.setParams({ markRead: undefined });
       }
     } finally {
       setLoading(false);
@@ -109,6 +119,28 @@ export default function ReceivedEncouragementsScreen({ navigation, route }) {
   useEffect(() => {
     initialLoad();
   }, [initialLoad]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        try {
+          await markAllRead();
+          if (!cancelled) {
+            setRows((prev) =>
+              prev.map((r) => ({
+                ...r,
+                read_at: r.read_at ?? new Date().toISOString(),
+              }))
+            );
+          }
+        } catch {}
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [markAllRead])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
