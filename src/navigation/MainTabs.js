@@ -920,7 +920,27 @@ export default function MainTabs() {
       />
       <Tab.Screen name="Quest" component={QuestScreen} />
       <Tab.Screen name="Progress" component={ProgressScreen} />
-      <Tab.Screen name="Friends" component={FriendsStackScreen} />
+      {/* <Tab.Screen name="Friends" component={FriendsStackScreen} /> */}
+      <Tab.Screen
+        name="Friends" // ← this is the tab route name
+        component={FriendsStackScreen}
+        options={{
+          title: 'Friends',
+          // tabBarIcon, etc. go here
+          unmountOnBlur: false, // optional; leave as-is or tweak
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Make sure default behavior still runs
+            // e.preventDefault(); // ← only use if you *don't* want the default
+
+            // Always reset to FriendsList when the Friends tab is pressed
+            navigation.navigate('Friends', {
+              screen: 'FriendsList', // ← name inside FriendsStack.Navigator
+            });
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }

@@ -20,9 +20,11 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
+    "icon": "./assets/icon.png",
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#OB1B36"
       },
       "package": "com.bradlydh.thenarrowway"
     },

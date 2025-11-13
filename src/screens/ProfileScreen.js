@@ -828,6 +828,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.fieldBlock}>
           <FloatingLabelInput
             label="Favorite Verse (Reference)"
+            placeholder="John 3: 15-16"
             value={verseRef}
             onChangeText={(v) => {
               // When ref changes, clear the text and last lookup to prevent stale saves
@@ -888,7 +889,7 @@ export default function ProfileScreen({ navigation }) {
             // Read-only: users must use "Find Verse"
             editable={false}
             multiline
-            autoGrow
+            autoGrow={false}
             minLines={3}
             maxLines={20}
             inputStyle={{ textAlignVertical: 'top', opacity: 0.9 }}
