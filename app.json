@@ -1,3 +1,46 @@
+// {
+//   "expo": {
+//     "name": "The Narrow Way",
+//     "slug": "the-narrow-way",
+//     "platforms": ["ios", "android"],
+//     "scheme": "narrowway",
+//     "version": "0.1.0",
+//     "orientation": "portrait",
+//     "updates": {
+//       "fallbackToCacheTimeout": 0,
+//       "android": {
+//         "softwareKeyboardLayoutMode": "resize"
+//       }
+//     },
+//     "assetBundlePatterns": ["**/*"],
+//     "ios": {
+//       "supportsTablet": true,
+//       "bundleIdentifier": "com.bradlydh.thenarrowway",
+//       "infoPlist": {
+//         "ITSAppUsesNonExemptEncryption": false
+//       }
+//     },
+//     "icon": "./assets/icon.png",
+//     "android": {
+//       "adaptiveIcon": {
+//         "foregroundImage": "./assets/icon.png",
+//         "backgroundColor": "#OB1B36"
+//       },
+//       "package": "com.bradlydh.thenarrowway"
+//     },
+//     "web": {
+//       "bundler": "metro"
+//     },
+//     "plugins": ["expo-asset"],
+//     "extra": {
+//       "eas": {
+//         "projectId": "f452ef20-451a-4cb5-af9c-5fdee59bec32"
+//       }
+//     },
+//     "owner": "bradlydh"
+//   }
+// }
+
 {
   "expo": {
     "name": "The Narrow Way",
@@ -7,10 +50,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "updates": {
-      "fallbackToCacheTimeout": 0,
-      "android": {
-        "softwareKeyboardLayoutMode": "resize"
-      }
+      "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -24,9 +64,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#OB1B36"
+        "backgroundColor": "#0B1B36"
       },
-      "package": "com.bradlydh.thenarrowway"
+      "package": "com.bradlydh.thenarrowway",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro"
