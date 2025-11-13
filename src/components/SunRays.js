@@ -4,16 +4,19 @@ import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const PALETTE = [
-  '#E3F2FD',
-  '#BBDEFB',
-  '#90CAF9',
-  '#64B5F6',
-  '#42A5F5',
-  '#2196F3',
-  '#1E88E5',
-  '#1976D2',
-  '#1565C0',
-  '#0D47A1',
+  // '#E3F2FD',
+  // '#BBDEFB',
+  // '#90CAF9',
+  // '#64B5F6',
+  // '#42A5F5',
+  // '#2196F3',
+  // '#1E88E5',
+  // '#1976D2',
+  // '#1565C0',
+  // '#0D47A1',
+  '#E9F1FF',
+  '#CFE1FF',
+  '#B4CDFF',
 ];
 
 // helper: rotate the palette for the second layer

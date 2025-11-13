@@ -625,6 +625,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { useAutoScrollTop } from '../hooks/useAutoScrollTop';
 
 import Screen from '../components/Screen';
 import VerseCard from '../components/VerseCard';
@@ -642,6 +643,11 @@ function getGreeting() {
 
 export default function HomeScreen({ navigation }) {
   const route = useRoute();
+
+  const scrollRef = useRef(null);
+
+  // 👇 Auto-reset scroll to top whenever the screen becomes focused
+  useAutoScrollTop(scrollRef);
 
   // existing state
   const [verse, setVerse] = useState({ ref: '', text: '' });
@@ -831,7 +837,6 @@ export default function HomeScreen({ navigation }) {
 
   // Removed "Make Friends" here
   const tiles = [
-    { label: 'Profile', emoji: '👤', screen: 'Profile' },
     { label: 'Resources', emoji: '🧰', screen: 'Resources' },
     { label: 'Donations', emoji: '❤️', screen: 'Donations' },
   ];
@@ -850,6 +855,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <Screen dismissOnTap={false}>
       <ScrollView
+        ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

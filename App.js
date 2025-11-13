@@ -227,13 +227,13 @@ const HomeStack = createNativeStackNavigator();
 
 const AppTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: 'transparent' },
+  colors: { ...DefaultTheme.colors, background: Colors.background },
 };
 
-// 🔧 NEW: central place to play with defaults for all pushes inside stacks
-const defaultStackAnimation = 'slide_from_right'; // try: 'slide_from_left' | 'slide_from_bottom' | 'fade' | 'default' | 'none'
+// 🔧 central place to play with defaults for pushes inside stacks
+const defaultStackAnimation = 'slide_from_right';
 
-// ---- Home tab gets a nested stack so tab bar stays visible on composer/inbox ----
+// ---- Home tab nested stack (kept as-is; used inside MainTabs) ----
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator
@@ -241,15 +241,12 @@ function HomeStackScreen() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: Colors.background },
-        animation: defaultStackAnimation, // 🔧 NEW: default push animation for this stack
-        fullScreenSwipeEnabled: true, // 🔧 NEW: (iOS) swipe back from anywhere
-        gestureEnabled: true, // 🔧 NEW: enable back-swipe gesture (iOS)
+        animation: defaultStackAnimation,
+        fullScreenSwipeEnabled: true,
+        gestureEnabled: true,
       }}
     >
-      {/* NOTE: "HomeMain" avoids the 'Home nested inside Home' warning */}
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-
-      {/* Normal push inherits animation above */}
       <HomeStack.Screen
         name="ReceivedEncouragements"
         component={ReceivedEncouragementsScreen}
@@ -261,16 +258,10 @@ function HomeStackScreen() {
         name="AnsweredPrayers"
         component={AnsweredPrayersScreen}
       />
-
-      {/* 🔧 NEW: Example per-screen override — slide up like a sheet */}
       <HomeStack.Screen
         name="Encouragement"
         component={EncouragementScreen}
-        options={{
-          presentation: 'modal', // iOS-style modal presentation
-          animation: 'slide_from_bottom', // slide up from bottom
-          // Try changing to: 'fade_from_bottom' | 'fade'
-        }}
+        options={{ presentation: 'modal', animation: 'fade_from_bottom' }}
       />
     </HomeStack.Navigator>
   );
@@ -302,31 +293,19 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <View style={{ flex: 1 }}>
-          <AppHeader />
           <NavigationContainer theme={AppTheme}>
             <Stack.Navigator
               screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: 'transparent' },
-                // 🔧 Optional: animation for root-level route changes (MainTabs -> modals)
-                animation: 'fade', // try 'default' | 'none'
+                // ✅ make AppHeader the stack header so it has navigation context
+                headerShown: true,
+                header: () => <AppHeader />,
+                headerTransparent: true, // AppHeader draws its own background
+                contentStyle: { backgroundColor: Colors.background },
+                animation: 'fade',
               }}
             >
               {/* Tabs are the entry point */}
               <Stack.Screen name="MainTabs" component={MainTabs} />
-
-              {/* 🔧 NEW: Optional global modal group *above* tabs */}
-              {/* Example: if you later want a global compose or settings that floats over tabs, add it here */}
-              {false && (
-                <Stack.Group
-                  screenOptions={{
-                    presentation: 'modal',
-                    animation: 'slide_from_bottom',
-                  }}
-                >
-                  {/* <Stack.Screen name="GlobalCompose" component={SomeScreen} /> */}
-                </Stack.Group>
-              )}
             </Stack.Navigator>
           </NavigationContainer>
         </View>
