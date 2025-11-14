@@ -7,3 +7,4 @@ build
 src/config/index.js
 ios/
 android/
+.env.local

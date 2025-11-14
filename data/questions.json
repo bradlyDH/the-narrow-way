@@ -1,0 +1,37 @@
+[
+  {
+    "virtue": "Faith",
+    "type": "scenario",
+    "prompt": "You feel anxious about the future and don’t know what will happen. What is a faithful first response?",
+    "options": [
+      "Pray and bring your worries to God, trusting His promises",
+      "Try to control every detail and keep worrying",
+      "Complain to others but never pray about it"
+    ],
+    "answer_index": 0,
+    "scripture_ref": "Philippians 4:6–7",
+    "scripture_passage": "Do not be anxious about anything, but in everything by prayer and supplication with thanksgiving let your requests be made known to God..."
+  },
+  {
+    "virtue": "Faith",
+    "type": "verse",
+    "prompt": "Without looking at the Bible, finish this verse.\nHebrews 11:1 says: \"Now faith is the assurance of things hoped for,...\"",
+    "options": [
+      "the promise of an easy life.",
+      "the conviction of things not seen.",
+      "the guarantee of earthly success."
+    ],
+    "answer_index": 1,
+    "scripture_ref": "Hebrews 11:1",
+    "scripture_passage": "Now faith is the assurance of things hoped for, the conviction of things not seen."
+  },
+  {
+    "virtue": "General",
+    "type": "general",
+    "prompt": "How many books are in the whole Bible?",
+    "options": ["39", "66", "73"],
+    "answer_index": 1,
+    "scripture_ref": null,
+    "scripture_passage": null
+  }
+]
