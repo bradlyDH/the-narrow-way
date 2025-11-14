@@ -779,7 +779,7 @@ import { Colors } from '../constants/colors';
 import HomeScreen from '../screens/HomeScreen';
 import PrayerListScreen from '../screens/PrayerListScreen';
 import QuestScreen from '../screens/QuestScreen';
-import ProgressScreen from '../screens/ProgressScreen';
+import JournalScreen from '../screens/JournalScreen';
 
 import FriendsListScreen from '../screens/FriendsListScreen';
 import MakeFriendsScreen from '../screens/MakeFriendsScreen';
@@ -919,7 +919,18 @@ export default function MainTabs() {
         options={{ tabBarLabel: 'Prayers' }}
       />
       <Tab.Screen name="Quest" component={QuestScreen} />
-      <Tab.Screen name="Progress" component={ProgressScreen} />
+      <Tab.Screen
+        name="Journal"
+        component={JournalScreen}
+        options={{
+          title: 'Journal',
+          // keep whatever icon config you had, or a new one, e.g.:
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="journal-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
       {/* <Tab.Screen name="Friends" component={FriendsStackScreen} /> */}
       <Tab.Screen
         name="Friends" // ← this is the tab route name

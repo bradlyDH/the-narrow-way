@@ -1,0 +1,3 @@
+export async function getOrCreateTodaysQuest() {
+  // ...logic from earlier message...
+}

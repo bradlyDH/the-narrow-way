@@ -924,7 +924,7 @@ export default function AnimatedLogo({
   // colors
   textColor = '#FFFFFF',
   strokeColor = '#FFFFFF',
-  glowColor = '#60a5fa',
+  glowColor = '#f2fa60ff',
 
   // visuals
   useGradient = false,

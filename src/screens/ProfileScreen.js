@@ -678,6 +678,16 @@ export default function ProfileScreen({ navigation }) {
         }
 
         setDisplayName(data?.display_name || '');
+
+        const initialRef = (data?.verse_ref || '').trim();
+        const initialText = (data?.verse_text || '').trim();
+
+        if (initialRef && initialText) {
+          setLastLookup({ ref: initialRef, text: initialText });
+        } else {
+          setLastLookup({ ref: '', text: '' });
+        }
+
         setVerseRef(data?.verse_ref || '');
         setVerseText(data?.verse_text || '');
 
