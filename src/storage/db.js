@@ -170,7 +170,7 @@ export async function getDb() {
   if (dbInstance) return dbInstance;
 
   // open or create the DB file
-  dbInstance = await SQLite.openDatabaseAsync('app.db');
+  dbInstance = await SQLite.openDatabaseAsync('app_v2.db');
 
   // create tables if they don't exist yet
   await dbInstance.execAsync(`
@@ -222,24 +222,28 @@ export async function getDb() {
     CREATE INDEX IF NOT EXISTS idx_challenge_log_qdate
       ON challenge_log (challenge_id, served_at);
 
-    CREATE TABLE IF NOT EXISTS journal_entries (
+   CREATE TABLE IF NOT EXISTS journal_entries (
       id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL,
       date TEXT NOT NULL,
       virtue TEXT NOT NULL,
       note TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_journal_date
-      ON journal_entries (date);
+    CREATE INDEX IF NOT EXISTS idx_journal_user_date
+      ON journal_entries (user_id, date DESC);
 
     -- NEW: store quest completion per day (SQLite survives full app restarts)
-    CREATE TABLE IF NOT EXISTS quest_status (
-      date TEXT PRIMARY KEY NOT NULL,
-      completed INTEGER NOT NULL
+   CREATE TABLE IF NOT EXISTS quest_status (
+      user_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      completed INTEGER NOT NULL,
+      completed_at TEXT,
+      PRIMARY KEY (user_id, date)
     );
-    CREATE INDEX IF NOT EXISTS idx_quest_status_date
-      ON quest_status (date);
+    CREATE INDEX IF NOT EXISTS idx_quest_status_user_date
+      ON quest_status (user_id, date);
   
   CREATE TABLE IF NOT EXISTS bible_translations (
   code TEXT PRIMARY KEY,        -- 'WEB', 'KJV', 'ESV', etc
