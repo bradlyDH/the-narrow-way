@@ -248,7 +248,7 @@ export default function SplashScreenView({
           text="The Narrow Way"
           textColor="#FFFFFF"
           strokeColor="#FFFFFF"
-          glowColor="#90CAF9"
+          glowColor="#FFD700"
           useGradient={false}
           showGrid={false}
           showBeam={true}

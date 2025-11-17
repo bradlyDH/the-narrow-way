@@ -544,6 +544,7 @@ export default function HomeScreen({ navigation }) {
 
   // Removed "Make Friends" here
   const tiles = [
+    { label: 'Bible', emoji: '✝️', screen: 'Bible' },
     { label: 'Resources', emoji: '🧰', screen: 'Resources' },
     { label: 'Donations', emoji: '❤️', screen: 'Donations' },
   ];

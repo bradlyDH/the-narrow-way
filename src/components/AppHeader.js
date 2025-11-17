@@ -165,7 +165,7 @@ export default function AppHeader() {
           text="The Narrow Way"
           textColor="#fff"
           strokeColor="#fff"
-          glowColor="#90CAF9"
+          glowColor="#FFD700"
           useGradient={false}
           showGrid={false}
           showBeam={true}
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: 'rgba(28,114,147,0.95)', // matches your card tone
+    backgroundColor: Colors.button, // matches your card tone
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

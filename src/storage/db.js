@@ -240,7 +240,28 @@ export async function getDb() {
     );
     CREATE INDEX IF NOT EXISTS idx_quest_status_date
       ON quest_status (date);
-  `);
+  
+  CREATE TABLE IF NOT EXISTS bible_translations (
+  code TEXT PRIMARY KEY,        -- 'WEB', 'KJV', 'ESV', etc
+  name TEXT NOT NULL,           -- 'World English Bible'
+  public_domain INTEGER NOT NULL, -- 1 or 0
+  info_url TEXT                 -- optional, for attribution/help
+  );
+
+  CREATE TABLE IF NOT EXISTS bible_verses (
+  id INTEGER PRIMARY KEY,
+  translation_code TEXT NOT NULL,
+  book TEXT NOT NULL,
+  chapter INTEGER NOT NULL,
+  verse INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  FOREIGN KEY (translation_code)
+    REFERENCES bible_translations(code)
+);
+CREATE INDEX IF NOT EXISTS idx_bible_translation_book_chapter
+  ON bible_verses (translation_code, book, chapter, verse);
+
+    `);
 
   return dbInstance;
 }

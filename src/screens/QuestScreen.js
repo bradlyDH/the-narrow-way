@@ -1391,16 +1391,14 @@ export default function QuestScreen({ navigation }) {
       <Screen showBack onBack={() => navigation.goBack()}>
         <View style={{ flex: 1 }}>
           {playConfetti && (
-            <View style={styles.confettiOverlay} pointerEvents="none">
-              <LottieView
-                ref={confettiRef}
-                source={require('../../assets/animations/confetti.json')}
-                autoPlay
-                loop={false}
-                style={styles.confetti}
-                onAnimationFinish={() => setPlayConfetti(false)}
-              />
-            </View>
+            <LottieView
+              source={require('../../assets/animations/confetti.json')}
+              autoPlay
+              loop={false}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+              resizeMode="cover"
+            />
           )}
 
           <ScrollView
@@ -1434,7 +1432,7 @@ export default function QuestScreen({ navigation }) {
               style={styles.homeBtn}
               activeOpacity={0.9}
               onPress={() =>
-                navigation.navigate('MainTabs', {
+                navigation.navigate('Home', {
                   screen: 'Home',
                 })
               }
@@ -1696,18 +1694,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '800',
     fontSize: 15,
-  },
-  confettiOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingTop: 80,
-    zIndex: 5,
-  },
-  confetti: {
-    width: 260,
-    height: 260,
   },
 });

@@ -567,18 +567,28 @@ import {
   updateJournalEntry,
   deleteJournalEntry,
 } from '../logic/journal';
+import { getTodaysQuestVirtue } from '../logic/dailyQuest';
 
 export default function JournalScreen() {
   const route = useRoute();
 
   // virtue is now state, so we can override it from navigation
-  const [virtue, setVirtue] = useState('Today');
+  // const [virtue, setVirtue] = useState('Today');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [entries, setEntries] = useState([]);
   const [note, setNote] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [virtue, setVirtue] = useState('Today');
+
+  // If we navigated from Quest, we may get route.params.virtue
+  const overrideVirtue =
+    typeof route.params?.virtue === 'string' && route.params.virtue.length
+      ? route.params.virtue
+      : null;
+
+  // const virtue = overrideVirtue || getTodaysVirtue() || null;
 
   const presetVirtue = route?.params?.presetVirtue || null;
 
@@ -588,15 +598,15 @@ export default function JournalScreen() {
 
     (async () => {
       try {
-        const daily = await getTodaysVirtue();
-        const dailyName = daily && (daily.virtue || daily.name || daily.label);
-
-        const finalName = presetVirtue || dailyName || 'Today';
+        // 👇 Pull virtue from today's QUEST
+        const v = await getTodaysQuestVirtue();
 
         if (mounted) {
-          setVirtue(finalName);
+          setVirtue(v || presetVirtue || 'Today');
         }
       } catch (e) {
+        console.warn('Error loading quest virtue for journal:', e);
+
         if (mounted) {
           setVirtue(presetVirtue || 'Today');
         }
@@ -689,9 +699,15 @@ export default function JournalScreen() {
       >
         <Text style={styles.title}>Journal 🕊️</Text>
         <Text style={styles.subtitle}>
-          How can you live out{' '}
-          <Text style={styles.virtueHighlight}>{virtue.toLowerCase()}</Text>{' '}
-          today?
+          {virtue ? (
+            <>
+              How can you live out{' '}
+              <Text style={styles.virtueHighlight}>{virtue.toLowerCase()}</Text>{' '}
+              today?
+            </>
+          ) : (
+            'How can you live this out today?'
+          )}
         </Text>
 
         <View style={styles.editorCard}>

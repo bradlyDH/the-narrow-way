@@ -1406,7 +1406,7 @@ export default function EncouragementScreen({ navigation }) {
         )}
 
         {/* Suggestions list (only my friends) */}
-        {suggestions.length > 0 && (
+        {suggestions.length > 0 && !recipientId && (
           <View style={styles.suggestionBox}>
             {suggestions.map((p) => (
               <TouchableOpacity
@@ -1427,9 +1427,6 @@ export default function EncouragementScreen({ navigation }) {
                   </Text>
                   <Text style={styles.suggestionMeta}>ID: {p.short_id}</Text>
                 </View>
-                {recipientId === p.id && (
-                  <Ionicons name="checkmark" size={16} color="#0b2545" />
-                )}
               </TouchableOpacity>
             ))}
           </View>

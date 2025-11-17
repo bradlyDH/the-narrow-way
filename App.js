@@ -325,6 +325,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { seedBibleIfNeeded } from './src/logic/seedBible';
 
 import AppHeader from './src/components/AppHeader';
 import { Colors } from './src/constants/colors';
@@ -334,7 +335,6 @@ import HomeScreen from './src/screens/HomeScreen';
 import PrayerListScreen from './src/screens/PrayerListScreen';
 import AnsweredPrayersScreen from './src/screens/AnsweredPrayersScreen';
 import QuestScreen from './src/screens/QuestScreen';
-import ProgressScreen from './src/screens/ProgressScreen';
 import EncouragementScreen from './src/screens/EncouragementScreen';
 import ReceivedEncouragementsScreen from './src/screens/ReceivedEncouragementsScreen';
 import MakeFriendsScreen from './src/screens/MakeFriendsScreen';
@@ -342,6 +342,7 @@ import FriendsListScreen from './src/screens/FriendsListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import DonationsScreen from './src/screens/DonationsScreen';
 import ResourcesScreen from './src/screens/ResourcesScreen';
+import BibleScreen from './src/screens/BibleScreen';
 
 import { ensureSessionAndProfile } from './src/auth/bootstrap';
 import { supabase } from './src/supabase';
@@ -388,6 +389,7 @@ function HomeStackScreen() {
         component={ReceivedEncouragementsScreen}
       />
       <HomeStack.Screen name="Profile" component={ProfileScreen} />
+
       <HomeStack.Screen name="Resources" component={ResourcesScreen} />
       <HomeStack.Screen name="Donations" component={DonationsScreen} />
       <HomeStack.Screen
@@ -399,6 +401,7 @@ function HomeStackScreen() {
         component={EncouragementScreen}
         options={{ presentation: 'modal', animation: 'fade_from_bottom' }}
       />
+      <HomeStack.Screen name="Bible" component={BibleScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -411,6 +414,7 @@ async function bootstrapApp() {
   // Then sync questions/challenges from Supabase → SQLite
   try {
     await syncContent();
+    await seedBibleIfNeeded(); // NEW: one-time WEB Bible seeding
   } catch (e) {
     console.warn('Initial content sync failed:', e);
   }
