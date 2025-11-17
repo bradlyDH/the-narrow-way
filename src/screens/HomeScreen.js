@@ -587,13 +587,13 @@ export default function HomeScreen({ navigation }) {
           <VerseCard>
             {verse.text
               ? `${verse.ref ? verse.ref + ' : ' : ''}"${verse.text}"`
-              : 'Set your favorite verse in profile.'}
+              : 'Set your favorite verse in your profile and see it here!'}
           </VerseCard>
 
           <View style={{ height: 10 }} />
 
           <PulseTile
-            label="Encouraging Messages"
+            label="Encouraging Messages ✉️"
             pulsing={pulsing}
             count={unreadCount}
             onPress={onPressEncouragements}

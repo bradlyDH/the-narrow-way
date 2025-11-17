@@ -12,11 +12,11 @@ export default function VerseCard({ children }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.tile,
+    backgroundColor: 'transprent',
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 18,
     opacity: 0.85,
   },
-  text: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  text: { color: '#000000ff', fontSize: 16, fontWeight: '600' },
 });
