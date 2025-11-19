@@ -16,10 +16,18 @@ import {
   useScrollToTop,
 } from '@react-navigation/native';
 
-import Screen from '../components/Screen'; // ← keep Screen for background + safe-area + SunRays
+import Screen from '../components/Screen';
 import FloatingLabelInput from '../components/FloatingLabelInput';
 import { Colors } from '../constants/colors';
-import { supabase } from '../supabase';
+
+// ✅ use the service (local-first + UUID guard)
+import {
+  loadPrayers,
+  savePrayer,
+  setLastPrayedNow,
+  answerPrayer,
+  removePrayer,
+} from '../services/prayerService';
 
 export default function PrayerListScreen({ navigation }) {
   const route = useRoute();
@@ -31,7 +39,6 @@ export default function PrayerListScreen({ navigation }) {
   const [adding, setAdding] = useState(false);
   const [requests, setRequests] = useState([]);
 
-  const userIdRef = useRef(null);
   const scrollRef = useRef(null);
   useScrollToTop(scrollRef);
 
@@ -61,27 +68,9 @@ export default function PrayerListScreen({ navigation }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setRequests([]);
-        setLoading(false);
-        return;
-      }
-      userIdRef.current = user.id;
-
-      const { data, error } = await supabase
-        .from('prayer_requests')
-        .select(
-          'id, title, details, created_at, last_prayed_at, answered, answered_at'
-        )
-        .eq('user_id', user.id)
-        .eq('answered', false)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setRequests(data || []);
+      const data = await loadPrayers(200); // normalized snake_case fields
+      // keep only “active” (not answered and not soft-deleted)
+      setRequests((data || []).filter((r) => !r.answered && !r.deleted_at));
     } catch (e) {
       console.warn('Load prayers error:', e?.message);
       setRequests([]);
@@ -120,41 +109,12 @@ export default function PrayerListScreen({ navigation }) {
 
     setAdding(true);
     try {
-      const optimistic = {
-        id: `tmp_${Date.now()}`,
-        title: t,
-        details: d,
-        created_at: new Date().toISOString(),
-        last_prayed_at: null,
-        answered: false,
-        answered_at: null,
-      };
-      setRequests((prev) => [optimistic, ...prev]);
-
-      const { data, error } = await supabase
-        .from('prayer_requests')
-        .insert({
-          user_id: userIdRef.current,
-          title: t,
-          details: d,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // replace optimistic with real row
-      setRequests((prev) => [
-        data,
-        ...prev.filter((r) => r.id !== optimistic.id),
-      ]);
+      // local-first create; returned row has snake_case aliases for UI
+      const created = await savePrayer({ title: t, details: d });
+      setRequests((prev) => [created, ...prev]);
       setTitle('');
       setDetails('');
     } catch (e) {
-      // rollback optimistic
-      setRequests((prev) =>
-        prev.filter((r) => !String(r.id).startsWith('tmp_'))
-      );
       Alert.alert('Error', e?.message || 'Failed to add request.');
     } finally {
       setAdding(false);
@@ -162,22 +122,17 @@ export default function PrayerListScreen({ navigation }) {
   };
 
   const markPrayedToday = async (req) => {
-    const today = todayLocalDate(); // local date
+    const today = todayLocalDate(); // YYYY-MM-DD
 
-    // optimistic
+    // optimistic local update
     const prev = requests;
-    const updated = prev.map((r) =>
-      r.id === req.id ? { ...r, last_prayed_at: today } : r
+    setRequests(
+      prev.map((r) => (r.id === req.id ? { ...r, last_prayed_at: today } : r))
     );
-    setRequests(updated);
 
     try {
-      const { error } = await supabase
-        .from('prayer_requests')
-        .update({ last_prayed_at: today }) // local YYYY-MM-DD
-        .eq('id', req.id)
-        .eq('user_id', userIdRef.current);
-      if (error) throw error;
+      // ✅ service guards non-UUID ids; no direct Supabase calls here
+      await setLastPrayedNow(req.id, today);
     } catch (e) {
       setRequests(prev); // rollback
       Alert.alert('Error', e?.message || 'Could not mark as prayed.');
@@ -185,21 +140,12 @@ export default function PrayerListScreen({ navigation }) {
   };
 
   const markAnswered = async (req) => {
-    // optimistic: remove from list
+    // optimistic remove from active list
     const prev = requests;
     setRequests(prev.filter((r) => r.id !== req.id));
 
     try {
-      const { error } = await supabase
-        .from('prayer_requests')
-        .update({
-          answered: true,
-          answered_at: new Date().toISOString(),
-        })
-        .eq('id', req.id)
-        .eq('user_id', userIdRef.current);
-
-      if (error) throw error;
+      await answerPrayer(req.id);
     } catch (e) {
       setRequests(prev); // rollback
       Alert.alert('Error', e?.message || 'Could not mark as answered.');
@@ -208,16 +154,11 @@ export default function PrayerListScreen({ navigation }) {
 
   const deleteRequest = async (req) => {
     const prev = requests;
-    setRequests(prev.filter((r) => r.id !== req.id));
+    setRequests(prev.filter((r) => r.id !== req.id)); // optimistic
     try {
-      const { error } = await supabase
-        .from('prayer_requests')
-        .delete()
-        .eq('id', req.id)
-        .eq('user_id', userIdRef.current);
-      if (error) throw error;
+      await removePrayer(req.id); // soft-delete (remote guarded)
     } catch (e) {
-      setRequests(prev);
+      setRequests(prev); // rollback
       Alert.alert('Error', e?.message || 'Could not delete request.');
     }
   };
@@ -246,11 +187,7 @@ export default function PrayerListScreen({ navigation }) {
 
   // --- render
   return (
-    <Screen
-      showBack
-      onBack={() => navigation.goBack()}
-      dismissOnTap={false} // ← IMPORTANT: disables TouchableWithoutFeedback in Screen
-    >
+    <Screen showBack onBack={() => navigation.goBack()} dismissOnTap={false}>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={styles.content}
@@ -267,13 +204,13 @@ export default function PrayerListScreen({ navigation }) {
         <View style={{ marginTop: 10 }}>
           <FloatingLabelInput
             style={{ paddingBottom: 9 }}
-            label="Request Title"
+            label="Person's Name:"
             value={title}
             onChangeText={setTitle}
           />
           <View style={{ height: 12 }} />
           <FloatingLabelInput
-            label="Details"
+            label="What To Pray For:"
             value={details}
             onChangeText={setDetails}
             multiline

@@ -96,7 +96,9 @@ export default function JournalScreen() {
 
       if (editingId) {
         // Update existing
-        const updatedMeta = await updateJournalEntry(editingId, trimmed);
+        const updatedMeta = await updateJournalEntry(editingId, {
+          note: trimmed,
+        });
         setEntries((prev) =>
           prev.map((entry) =>
             entry.id === editingId
@@ -106,7 +108,7 @@ export default function JournalScreen() {
         );
       } else {
         // Create new – use the current virtue state
-        const created = await createJournalEntry(trimmed, virtue);
+        const created = await createJournalEntry({ note: trimmed, virtue });
         if (created) {
           setEntries((prev) => [created, ...prev]);
         }

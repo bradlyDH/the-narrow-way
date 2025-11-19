@@ -30,7 +30,7 @@ const resources = [
       },
       {
         title: 'Parkside Church',
-        sub: "Alistair Begg's ministry",
+        sub: "Parkside Green's teaching ministry",
         url: 'https://parksidegreen.org/',
         thumb:
           'https://www.google.com/s2/favicons?domain=parksidegreen.org&sz=64',

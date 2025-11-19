@@ -16,6 +16,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
+import {
+  loadPrayers,
+  savePrayer,
+  removePrayer,
+} from '../services/prayerService';
 
 export default function AnsweredPrayersScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -44,17 +49,8 @@ export default function AnsweredPrayersScreen({ navigation }) {
       }
       userIdRef.current = user.id;
 
-      const { data, error } = await supabase
-        .from('prayer_requests')
-        .select(
-          'id, title, details, created_at, last_prayed_at, answered, answered_at'
-        )
-        .eq('user_id', user.id)
-        .eq('answered', true)
-        .order('answered_at', { ascending: false });
-
-      if (error) throw error;
-      setRows(data || []);
+      const data = await loadPrayers(200);
+      setRows((data || []).filter((r) => !!r.answered));
     } catch (e) {
       console.warn('Load answered error:', e?.message);
       setRows([]);
@@ -72,13 +68,9 @@ export default function AnsweredPrayersScreen({ navigation }) {
     setRows(prev.filter((r) => r.id !== req.id));
 
     try {
-      const { error } = await supabase
-        .from('prayer_requests')
-        .update({ answered: false, answered_at: null })
-        .eq('id', req.id)
-        .eq('user_id', userIdRef.current);
-
-      if (error) throw error;
+      // “Restore” = flip answered->false locally+remote; reuse answerPrayer logic? We’ll just resave:
+      // quick local optimistic is already applied above
+      await savePrayer({ id: req.id, answered: false, answeredAt: null });
 
       // ✅ Simply dismiss; PrayerListScreen's useFocusEffect will refetch
       navigation.pop(); // or navigation.goBack()
@@ -92,12 +84,7 @@ export default function AnsweredPrayersScreen({ navigation }) {
     const prev = rows;
     setRows(prev.filter((r) => r.id !== req.id)); // optimistic
     try {
-      const { error } = await supabase
-        .from('prayer_requests')
-        .delete()
-        .eq('id', req.id)
-        .eq('user_id', userIdRef.current);
-      if (error) throw error;
+      await removePrayer(req.id);
     } catch (e) {
       setRows(prev); // rollback
       Alert.alert('Error', e?.message || 'Could not delete request.');
