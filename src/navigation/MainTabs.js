@@ -113,7 +113,6 @@ export default function MainTabs() {
         headerShown: false,
         tabBarHideOnKeyboard: true,
 
-        // scene itself just uses your app background
         sceneContainerStyle: {
           backgroundColor: Colors.background,
         },
@@ -121,7 +120,6 @@ export default function MainTabs() {
         tabBarActiveTintColor: '#b1c63dff',
         tabBarInactiveTintColor: '#475569',
 
-        // 🔹 Standard, non-floating tab bar
         tabBarStyle: {
           backgroundColor: Colors.button,
           borderTopWidth: 0,
@@ -136,7 +134,7 @@ export default function MainTabs() {
             Home: 'home-outline',
             Prayers: 'book-outline',
             Quest: 'flag-outline',
-            Progress: 'stats-chart-outline',
+            Journal: 'document-text-outline', // ← valid Ionicon
             Friends: 'people-outline',
           };
           const name = iconMap[route.name] || 'ellipse-outline';
@@ -147,27 +145,11 @@ export default function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeStackScreen}
-        options={{
-          tabBarLabel: 'Home',
-          // whatever icon/options you already had
-        }}
-        listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
-            // If we're already on Home tab and the stack is deep,
-            // pop back to the root "HomeMain" screen.
-            const state = route?.state;
-
-            if (state && state.type === 'stack' && state.index > 0) {
-              // Prevent the default behavior (which would just re-focus the tab)
-              e.preventDefault();
-
-              // Navigate to the root of the HomeStack
-              navigation.navigate('Home', {
-                screen: 'HomeMain',
-              });
-            }
-            // If state is undefined (first load) or index === 0,
-            // we let the default behavior happen.
+        options={{ tabBarLabel: 'Home' }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            // Always take the Home stack back to its root
+            navigation.navigate('Home', { screen: 'HomeMain' });
           },
         })}
       />
@@ -177,37 +159,28 @@ export default function MainTabs() {
         component={PrayerStackScreen}
         options={{ tabBarLabel: 'Prayers' }}
       />
+
       <Tab.Screen name="Quest" component={QuestScreen} />
+
       <Tab.Screen
         name="Journal"
         component={JournalScreen}
         options={{
           title: 'Journal',
-          // keep whatever icon config you had, or a new one, e.g.:
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="journal-outline" size={size} color={color} />
-          ),
+          // icon handled in screenOptions above
         }}
       />
 
-      {/* <Tab.Screen name="Friends" component={FriendsStackScreen} /> */}
       <Tab.Screen
-        name="Friends" // ← this is the tab route name
+        name="Friends"
         component={FriendsStackScreen}
         options={{
           title: 'Friends',
-          // tabBarIcon, etc. go here
-          unmountOnBlur: false, // optional; leave as-is or tweak
+          unmountOnBlur: false,
         }}
         listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            // Make sure default behavior still runs
-            // e.preventDefault(); // ← only use if you *don't* want the default
-
-            // Always reset to FriendsList when the Friends tab is pressed
-            navigation.navigate('Friends', {
-              screen: 'FriendsList', // ← name inside FriendsStack.Navigator
-            });
+          tabPress: () => {
+            navigation.navigate('Friends', { screen: 'FriendsList' });
           },
         })}
       />

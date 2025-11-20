@@ -36,7 +36,7 @@ const BOOKS = [
   'Psalms',
   'Proverbs',
   'Ecclesiastes',
-  'Song of Solomon',
+  'Song of Songs',
   'Isaiah',
   'Jeremiah',
   'Lamentations',
@@ -233,6 +233,10 @@ export default function BibleScreen({ route, navigation }) {
   }
 
   return (
+    // IMPORTANT: turn off Screen’s built-in header here
+    // <Screen withHeader={false}>
+    // {/* Render one header explicitly for this screen */}
+    // <AppHeader showBack onBack={() => navigation.goBack()} />
     <Screen showBack onBack={() => navigation.goBack()}>
       <ScrollView
         contentContainerStyle={styles.content}

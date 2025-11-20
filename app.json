@@ -2,19 +2,14 @@
   "expo": {
     "name": "The Narrow Way",
     "slug": "the-narrow-way",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "scheme": "narrowway",
     "version": "0.1.0",
     "orientation": "portrait",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["assets/data/*", "assets/db/*", "**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bradlydh.thenarrowway",
@@ -26,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#000000"
       },
       "package": "com.bradlydh.thenarrowway",
       "softwareKeyboardLayoutMode": "resize"
@@ -34,10 +29,7 @@
     "web": {
       "bundler": "metro"
     },
-    "plugins": [
-      "expo-asset",
-      "expo-sqlite"
-    ],
+    "plugins": ["expo-asset", "expo-sqlite"],
     "extra": {
       "eas": {
         "projectId": "f452ef20-451a-4cb5-af9c-5fdee59bec32"

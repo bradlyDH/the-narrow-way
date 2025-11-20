@@ -1,17 +1,3 @@
-// // src/storage/mmkv.js
-// import { MMKV } from 'react-native-mmkv';
-
-// export const storage = new MMKV();
-
-// export function getString(key, fallback = null) {
-//   const value = storage.getString(key);
-//   return value ?? fallback;
-// }
-
-// export function setString(key, value) {
-//   storage.set(key, value);
-// }
-
 // src/storage/mmkv.js
 // Temporary shim: behave like MMKV but in memory only (no native module).
 

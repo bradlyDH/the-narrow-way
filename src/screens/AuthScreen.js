@@ -14,7 +14,6 @@ import FloatingLabelInput from '../components/FloatingLabelInput';
 import { Colors } from '../constants/colors';
 import { supabase } from '../supabase';
 import { ensureSessionAndProfile } from '../auth/bootstrap';
-import { syncUserData } from '../logic/syncUserData';
 
 export default function AuthScreen({ navigation }) {
   const [checkingSession, setCheckingSession] = useState(true);
@@ -33,13 +32,7 @@ export default function AuthScreen({ navigation }) {
         } = await supabase.auth.getUser();
 
         if (user) {
-          // 🔹 Sync this user’s data into SQLite, then go into the app
-          try {
-            await syncUserData();
-          } catch (e) {
-            console.warn('AuthScreen: initial syncUserData failed', e);
-          }
-
+          // Already signed in (guest or email) → go straight to app
           navigation.reset({
             index: 0,
             routes: [{ name: 'MainTabs' }],
@@ -59,13 +52,6 @@ export default function AuthScreen({ navigation }) {
     try {
       // This will create an anonymous session + profile row if needed
       await ensureSessionAndProfile();
-
-      // 🔹 Pull down any user-specific data (if any) for this new anon user
-      try {
-        await syncUserData();
-      } catch (e) {
-        console.warn('AuthScreen: guest syncUserData failed', e);
-      }
 
       navigation.reset({
         index: 0,
@@ -131,13 +117,6 @@ export default function AuthScreen({ navigation }) {
           .upsert({ id: user.id }, { onConflict: 'id' });
       } catch (e) {
         console.warn('AuthScreen: upsert profile error', e);
-      }
-
-      // 🔹 Sync this user’s journal + quest status into SQLite
-      try {
-        await syncUserData();
-      } catch (e) {
-        console.warn('AuthScreen: sign-in syncUserData failed', e);
       }
 
       // Clear sensitive fields

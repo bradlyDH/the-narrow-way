@@ -1,64 +1,83 @@
 // src/components/PulseTile.js
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo, useState } from 'react';
 import {
   Animated,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   View,
+  AccessibilityInfo,
 } from 'react-native';
 import { Colors } from '../constants/colors';
+// import * as Haptics from 'expo-haptics'; // optional
 
-export default function PulseTile({
+function PulseTile({
   label,
   onPress,
   pulsing = false,
-  count = 0, // NEW: show unread badge
+  count = 0,
+  disabled = false,
+  style,
+  testID = 'pulse-tile',
+  accessibilityLabel,
 }) {
   const scale = useRef(new Animated.Value(1)).current;
   const halo = useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    if (!pulsing) {
+    let sub;
+    AccessibilityInfo?.isReduceMotionEnabled?.()
+      .then(setReduceMotion)
+      .catch(() => {});
+    sub = AccessibilityInfo?.addEventListener?.(
+      'reduceMotionChanged',
+      setReduceMotion
+    );
+    return () => sub?.remove?.();
+  }, []);
+
+  useEffect(() => {
+    // stop any running animations when disabled or motion reduced
+    const shouldPulse = pulsing && !disabled && !reduceMotion;
+    if (!shouldPulse) {
       scale.stopAnimation();
       halo.stopAnimation();
       scale.setValue(1);
       halo.setValue(0);
       return;
     }
-
-    // Keep animations JS-driven to avoid the “moved to native” warning
     const loop = Animated.loop(
       Animated.parallel([
         Animated.sequence([
           Animated.timing(scale, {
             toValue: 1.04,
             duration: 900,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
           Animated.timing(scale, {
             toValue: 1.0,
             duration: 900,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ]),
         Animated.sequence([
           Animated.timing(halo, {
             toValue: 1,
             duration: 900,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
           Animated.timing(halo, {
             toValue: 0,
             duration: 900,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ]),
       ])
     );
     loop.start();
     return () => loop.stop();
-  }, [pulsing, scale, halo]);
+  }, [pulsing, disabled, reduceMotion, scale, halo]);
 
   const haloStyle = {
     opacity: halo.interpolate({
@@ -76,51 +95,74 @@ export default function PulseTile({
   };
 
   return (
-    <View style={styles.wrap}>
-      {/* Glowing halo behind the tile when pulsing */}
-      {pulsing && (
-        <Animated.View pointerEvents="none" style={[styles.halo, haloStyle]} />
+    <View style={[styles.wrap, style]}>
+      {pulsing && !disabled && !reduceMotion && (
+        <Animated.View
+          accessible={false}
+          pointerEvents="none"
+          style={[styles.halo, haloStyle]}
+        />
       )}
 
       <Animated.View style={{ transform: [{ scale }] }}>
-        <TouchableOpacity
+        <Pressable
+          testID={testID}
           onPress={onPress}
-          activeOpacity={0.9}
-          style={styles.tile}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityState={{ disabled }}
+          accessibilityLabel={
+            accessibilityLabel ?? (count > 0 ? `${label}, ${count} new` : label)
+          }
+          android_ripple={{ borderless: false }}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.tile,
+            pressed && { opacity: 0.92 },
+            disabled && { opacity: 0.6 },
+          ]}
         >
-          <Text style={styles.text}>{label}</Text>
+          <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+            {label}
+          </Text>
 
           {count > 0 && (
-            <View style={styles.badge}>
+            <View style={styles.badge} pointerEvents="none">
               <Text style={styles.badgeText}>
                 {count > 99 ? '99+' : String(count)}
               </Text>
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
     </View>
   );
 }
 
+export default memo(PulseTile);
+
+const TILE_RADIUS = 18;
+const HALO_OUTSET = 6;
+
 const styles = StyleSheet.create({
   wrap: { position: 'relative' },
   halo: {
     position: 'absolute',
-    left: -6,
-    right: -6,
-    top: -6,
-    bottom: -6,
-    borderRadius: 18,
+    left: -HALO_OUTSET,
+    right: -HALO_OUTSET,
+    top: -HALO_OUTSET,
+    bottom: -HALO_OUTSET,
+    borderRadius: TILE_RADIUS + HALO_OUTSET, // keep corners aligned
     backgroundColor: Colors.button,
     zIndex: 0,
   },
   tile: {
-    minHeight: 54, // slimmer tile
+    minHeight: 54,
+    minWidth: 44, // ensure touch target
     backgroundColor: Colors.accent,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 18,
+    borderRadius: TILE_RADIUS,
     opacity: 0.9,
     justifyContent: 'center',
   },

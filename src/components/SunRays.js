@@ -1,68 +1,87 @@
 // src/components/SunRays.js
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Easing } from 'react-native';
+import React, { useEffect, useMemo, useRef, memo, useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Animated,
+  Easing,
+  AccessibilityInfo,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const PALETTE = [
-  // '#E3F2FD',
-  // '#BBDEFB',
-  // '#90CAF9',
-  // '#64B5F6',
-  // '#42A5F5',
-  // '#2196F3',
-  // '#1E88E5',
-  // '#1976D2',
-  // '#1565C0',
-  // '#0D47A1',
-  '#E9F1FF',
-  '#CFE1FF',
-  '#B4CDFF',
-];
+const DEFAULT_PALETTE = ['#E9F1FF', '#CFE1FF', '#B4CDFF'];
+const rotate = (arr, n) =>
+  arr.length ? arr.slice(n).concat(arr.slice(0, n)) : arr;
 
-// helper: rotate the palette for the second layer
-const rotate = (arr, n) => arr.slice(n).concat(arr.slice(0, n));
-
-export default function SunRays({ style }) {
+function SunRays({
+  style,
+  palette = DEFAULT_PALETTE,
+  durationMs = 6000,
+  overlayOpacity = 0.03,
+}) {
   const fade = useRef(new Animated.Value(0)).current;
+  const animRef = useRef(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  // Guard: ensure we always have at least one color
+  const colorsA = palette && palette.length ? palette : DEFAULT_PALETTE;
+  const colorsB = useMemo(() => {
+    const len = colorsA.length || 1;
+    return rotate(colorsA, 3 % len);
+  }, [colorsA]);
 
   useEffect(() => {
-    const loop = () => {
-      Animated.sequence([
-        Animated.timing(fade, {
-          toValue: 1,
-          duration: 6000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(fade, {
-          toValue: 0,
-          duration: 6000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]).start(loop);
-    };
-    loop();
-  }, [fade]);
+    let sub;
+    AccessibilityInfo?.isReduceMotionEnabled?.()
+      .then(setReduceMotion)
+      .catch(() => {});
+    sub = AccessibilityInfo?.addEventListener?.(
+      'reduceMotionChanged',
+      setReduceMotion
+    );
+    return () => sub?.remove?.();
+  }, []);
 
-  const colorsA = PALETTE;
-  const colorsB = rotate(PALETTE, 3);
+  useEffect(() => {
+    if (reduceMotion) {
+      animRef.current?.stop?.();
+      fade.setValue(0);
+      return;
+    }
+    const seq = Animated.sequence([
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: durationMs,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: durationMs,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+    ]);
+    const loop = Animated.loop(seq);
+    animRef.current = loop;
+    loop.start();
+    return () => loop.stop();
+  }, [fade, durationMs, reduceMotion]);
 
   return (
-    // Absolutely fill by default; pointerEvents so it never blocks touches
     <View
       style={[StyleSheet.absoluteFill, styles.container, style]}
       pointerEvents="none"
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
     >
-      {/* Base gradient */}
       <LinearGradient
         colors={colorsA}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       />
-
-      {/* Animated overlay gradient (cross-fade) */}
       <Animated.View style={[styles.gradient, { opacity: fade }]}>
         <LinearGradient
           colors={colorsB}
@@ -71,21 +90,18 @@ export default function SunRays({ style }) {
           style={styles.gradient}
         />
       </Animated.View>
-
-      {/* Subtle veil to keep text readable */}
-      <View style={styles.overlay} />
+      <View style={[styles.overlay, { opacity: overlayOpacity }]} />
     </View>
   );
 }
 
+export default memo(SunRays);
+
 const styles = StyleSheet.create({
-  container: {
-    /* kept empty intentionally; absolute fill applied above */
-  },
+  container: {},
   gradient: { ...StyleSheet.absoluteFillObject },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000',
-    opacity: 0.03,
   },
 });

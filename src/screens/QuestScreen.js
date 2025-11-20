@@ -325,7 +325,7 @@ export default function QuestScreen({ navigation }) {
               activeOpacity={0.9}
               onPress={() =>
                 navigation.navigate('Home', {
-                  screen: 'Home',
+                  screen: 'HomeMain',
                 })
               }
             >
