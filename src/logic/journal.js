@@ -126,7 +126,9 @@ export async function getJournalEntries() {
  * - Returns the created entry object for UI insertion
  */
 export async function createJournalEntry(note, virtue) {
-  const trimmed = (note || '').trim();
+  // const trimmed = (note || '').trim();
+  const raw = typeof note === 'string' ? note : note?.note;
+  const trimmed = (raw ?? '').trim();
   if (!trimmed) return null;
 
   const {
@@ -192,7 +194,9 @@ export async function createJournalEntry(note, virtue) {
  * - Returns { updated_at } for your UI to patch into state
  */
 export async function updateJournalEntry(entryId, note) {
-  const trimmed = (note || '').trim();
+  // const trimmed = (note || '').trim();
+  const raw = typeof note === 'string' ? note : note?.note;
+  const trimmed = (raw ?? '').trim();
   if (!trimmed) return null;
 
   const {

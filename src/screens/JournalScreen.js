@@ -15,11 +15,10 @@ import Screen from '../components/Screen';
 import { Colors } from '../constants/colors';
 import { getTodaysVirtue } from '../logic/dailyVirtue';
 import {
-  createJournalEntry,
-  getJournalEntries,
-  updateJournalEntry,
-  deleteJournalEntry,
-} from '../logic/journal';
+  loadRecentJournalEntries,
+  saveJournalEntry,
+  removeJournalEntry,
+} from '../services/journalService';
 import { getTodaysQuestVirtue } from '../logic/dailyQuest';
 
 export default function JournalScreen() {
@@ -74,7 +73,8 @@ export default function JournalScreen() {
   const loadEntries = async () => {
     try {
       setLoading(true);
-      const rows = await getJournalEntries();
+      // const rows = await getJournalEntries();
+      const rows = await loadRecentJournalEntries();
       setEntries(rows || []);
     } catch (e) {
       console.warn('Error loading journal entries:', e);
@@ -96,9 +96,12 @@ export default function JournalScreen() {
 
       if (editingId) {
         // Update existing
-        const updatedMeta = await updateJournalEntry(editingId, {
+        // const updatedMeta = await updateJournalEntry(editingId, trimmed);
+        const updated = await saveJournalEntry({
+          id: editingId,
           note: trimmed,
         });
+        const updatedMeta = { updated_at: updated?.updated_at };
         setEntries((prev) =>
           prev.map((entry) =>
             entry.id === editingId
@@ -108,7 +111,8 @@ export default function JournalScreen() {
         );
       } else {
         // Create new – use the current virtue state
-        const created = await createJournalEntry({ note: trimmed, virtue });
+        // const created = await createJournalEntry(trimmed, virtue);
+        const created = await saveJournalEntry({ note: trimmed, virtue });
         if (created) {
           setEntries((prev) => [created, ...prev]);
         }
@@ -130,7 +134,7 @@ export default function JournalScreen() {
 
   const handleDelete = async (entryId) => {
     try {
-      await deleteJournalEntry(entryId);
+      await removeJournalEntry(entryId);
       setEntries((prev) => prev.filter((e) => e.id !== entryId));
 
       // If we were editing this one, reset editor
